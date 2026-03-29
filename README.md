@@ -32,7 +32,7 @@ MAAZは、4つのセキュリティフレームワークを1つの統合ビュ�
 
 ```bash
 # クローン
-git clone https://github.com/<your-username>/maaz.git
+git clone https://github.com/taka-taka-z/maaz.git
 cd maaz
 
 # ブラウザで開くだけ（サーバー不要）
