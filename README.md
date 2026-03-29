@@ -36,7 +36,7 @@ git clone https://github.com/taka-taka-z/maaz.git
 cd maaz
 
 # ブラウザで開くだけ（サーバー不要）
-open MAAZ_ZT_Assessment.html
+open MAAZ_v[version].html
 ```
 
 インストール不要、依存関係なし、オフライン動作可能。
