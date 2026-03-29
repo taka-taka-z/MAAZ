@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="maaz_icon.png" alt="MAAZ Icon" width="160"/>
+  <img src="Maaz_brushed.png" alt="MAAZ Icon" width="160"/>
 </p>
 
 <h1 align="center">MAAZ — Zero Trust Assessment</h1>
