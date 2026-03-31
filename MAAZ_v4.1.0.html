@@ -208,8 +208,12 @@ html.light .technique-card,
 html.light .kpi-card,
 html.light .viz-panel,
 html.light .rmf-card,
-html.light .customer-bar {
-  background: var(--bg-card);
+html.light .customer-bar,
+html.light .legend,
+html.light .summary-section,
+html.light .radar-section {
+  background: var(--bg-card) !important;
+  border-color: rgba(180,130,75,0.20) !important;
 }
 
 /* ライトモード: テキストカラー上書き */
@@ -767,6 +771,957 @@ select:focus{
 .mini-bar-val{font-size:10px;font-weight:700;min-width:32px;text-align:right;}
 .chart-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 @media(max-width:680px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.chart-2col{grid-template-columns:1fr;}}
+
+/* ═══════════════════════════════════════════
+   MAAZ v4.1.0 — UI/UX ENHANCEMENT LAYER
+   くろっち × たかさん共創  2026-03
+   CSSのみ改修 — ロジック変更ゼロ
+   ═══════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════
+   0. DARK MODE VISIBILITY OVERHAUL
+   問題: 茶系ダークモードのコントラスト不足
+   方針: 火星テーマを保持しつつ、背景を深く・
+         テキストを明るく・カードの浮き上がりを強化
+   ═══════════════════════════════════════════ */
+
+/* ── 0-1. 背景の深化：カードとの分離を明確に ── */
+:root {
+  /* 背景をさらに深い黒に。カードとの明度差を確保 */
+  --mars-black:    #080503;
+  --mars-deep:     #0e0906;
+  --mars-surface:  #140c07;
+
+  /* カードの不透明度を引き上げ → 背景から浮き上がる */
+  --mars-rock:     rgba(196,148,98,0.13);
+  --mars-rock-hi:  rgba(210,162,108,0.19);
+  --mars-dust:     rgba(196,148,98,0.22);
+  --mars-rim:      rgba(196,148,98,0.35);
+
+  /* テキスト3階層のコントラスト強化 */
+  --dust-primary:  #f8f2ea;      /* ほぼ白。対#080503=18.7:1 */
+  --dust-secondary:#dbc4a8;      /* ウォームベージュ。対#080503=10.4:1 */
+  --dust-muted:    #a08870;      /* 旧#7a6050→明るく。対#080503=5.2:1（WCAG AA） */
+
+  /* アクセント色の輝度微調整（暗い背景でより映える） */
+  --mars-red:      #f04e22;      /* 少し明るく */
+  --mars-orange:   #fb8332;
+  --mars-amber:    #e5950f;
+  --plasma-cyan:   #38d9f0;      /* シアンをより鮮やかに */
+  --bio-green:     #22c55e;      /* グリーンを明るく */
+  --deep-violet:   #8b5cf6;      /* バイオレットを明るく */
+
+  /* ステータスNA — 旧色が暗すぎた */
+  --status-na:     #6b5240;
+
+  /* グロー効果を強化 */
+  --glow-mars: 0 0 28px rgba(240,78,34,0.40);
+  --glow-cyan: 0 0 20px rgba(56,217,240,0.30);
+}
+
+/* ── 0-2. bodyの背景勾配を深化 ── */
+body {
+  background: #080503;
+}
+body::before {
+  background:
+    radial-gradient(ellipse 120% 45% at 50% 100%, rgba(180,60,10,0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at -10% 0%, rgba(200,80,20,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 110% 20%, rgba(160,50,10,0.10) 0%, transparent 55%),
+    repeating-linear-gradient(160deg, transparent, transparent 60px,
+      rgba(180,100,40,0.02) 60px, rgba(180,100,40,0.02) 61px),
+    repeating-linear-gradient(80deg, transparent, transparent 90px,
+      rgba(140,70,20,0.015) 90px, rgba(140,70,20,0.015) 91px) !important;
+}
+
+/* ── 0-3. カード・パネルの背景を半透明→やや不透明に ── */
+.score-card,
+.technique-card,
+.kpi-card,
+.viz-panel,
+.rmf-card,
+.phase-section,
+.customer-bar,
+.legend {
+  background: rgba(22,15,10,0.85) !important;
+  border: 1px solid rgba(196,148,98,0.15);
+}
+.score-card:hover,
+.technique-card:hover,
+.kpi-card:hover {
+  background: rgba(28,20,14,0.90) !important;
+  border-color: rgba(196,148,98,0.25);
+}
+
+/* ── 0-4. ヘッダーの背景強化 ── */
+.header {
+  background: linear-gradient(135deg, rgba(18,12,8,0.97), rgba(28,18,12,0.95)) !important;
+  border-bottom: 1px solid rgba(196,148,98,0.12);
+}
+
+/* ── 0-5. タブの可視性 ── */
+.tabs {
+  background: rgba(22,15,10,0.90) !important;
+  border: 1px solid rgba(196,148,98,0.12);
+}
+.tab {
+  color: var(--dust-muted);
+}
+.tab:hover:not(.active) {
+  color: var(--dust-secondary);
+  background: rgba(196,148,98,0.10) !important;
+}
+
+/* ── 0-6. インプットフィールド ── */
+html:not(.light) input,
+html:not(.light) select {
+  background: rgba(8,5,3,0.6) !important;
+  color: var(--dust-primary) !important;
+  border: 1px solid rgba(196,148,98,0.25) !important;
+}
+html:not(.light) input:focus,
+html:not(.light) select:focus {
+  border-color: var(--mars-red) !important;
+  background: rgba(8,5,3,0.8) !important;
+  box-shadow: 0 0 0 2px rgba(240,78,34,0.15) !important;
+}
+html:not(.light) input::placeholder {
+  color: var(--dust-muted);
+  opacity: 0.7;
+}
+
+/* ── 0-7. ステータスボタンの視認性強化 ── */
+html:not(.light) .status-btn {
+  background: rgba(196,148,98,0.08);
+  color: var(--dust-muted);
+  border: 1px solid rgba(196,148,98,0.12);
+}
+html:not(.light) .status-btn:hover {
+  background: rgba(196,148,98,0.14);
+  color: var(--dust-secondary);
+}
+/* 選択状態の背景を少し強く */
+html:not(.light) .status-btn.selected-full {
+  background: rgba(34,197,94,0.18) !important;
+}
+html:not(.light) .status-btn.selected-partial {
+  background: rgba(229,149,15,0.18) !important;
+}
+html:not(.light) .status-btn.selected-minimal {
+  background: rgba(251,131,50,0.18) !important;
+}
+html:not(.light) .status-btn.selected-none {
+  background: rgba(239,68,68,0.18) !important;
+}
+html:not(.light) .status-btn.selected-tested {
+  background: rgba(56,217,240,0.15) !important;
+}
+
+/* ── 0-8. バッジの視認性（半透明背景の強化）── */
+html:not(.light) .xai-badge {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid currentColor !important;
+  border-opacity: 0.3;
+}
+html:not(.light) .lifecycle-badge,
+html:not(.light) .nist-badge {
+  background: rgba(255,255,255,0.07) !important;
+  color: var(--dust-secondary) !important;
+  border: 1px solid rgba(196,148,98,0.2) !important;
+}
+
+/* ── 0-9. テーブルの行の区切り強化 ── */
+html:not(.light) .summary-table th {
+  background: rgba(14,9,6,0.7) !important;
+  color: var(--dust-secondary) !important;
+  border-bottom: 2px solid rgba(196,148,98,0.25) !important;
+}
+html:not(.light) .summary-table td {
+  border-bottom: 1px solid rgba(196,148,98,0.10) !important;
+}
+html:not(.light) .summary-table tr:hover td {
+  background: rgba(196,148,98,0.08) !important;
+}
+
+/* ── 0-10. フェーズヘッダーのホバー ── */
+html:not(.light) .phase-header:hover {
+  background: rgba(196,148,98,0.08) !important;
+}
+
+/* ── 0-11. プログレスバーのトラック ── */
+html:not(.light) .phase-bar-container {
+  background: rgba(196,148,98,0.15) !important;
+}
+html:not(.light) .mini-bar-track {
+  background: rgba(196,148,98,0.12) !important;
+}
+
+/* ── 0-12. ボタンの可視性 ── */
+html:not(.light) .btn {
+  background: rgba(196,148,98,0.08);
+  border: 1px solid rgba(196,148,98,0.20) !important;
+}
+html:not(.light) .btn:hover {
+  background: rgba(196,148,98,0.15);
+  border-color: rgba(196,148,98,0.30) !important;
+}
+
+/* ── 0-13. エクスポートバーの区切り ── */
+html:not(.light) .export-bar {
+  border-bottom: 1px solid rgba(196,148,98,0.15);
+}
+
+/* ── 0-14. RT Flag ── */
+html:not(.light) .rt-flag.off {
+  background: rgba(196,148,98,0.06);
+  color: var(--dust-muted);
+}
+
+/* ── 0-15. RMF カード内部 ── */
+html:not(.light) .rmf-header {
+  background: rgba(8,5,3,0.4) !important;
+  border-bottom: 1px solid rgba(196,148,98,0.12) !important;
+}
+html:not(.light) .rmf-item {
+  border-bottom: 1px solid rgba(196,148,98,0.10) !important;
+}
+html:not(.light) .rmf-btn {
+  background: rgba(196,148,98,0.08);
+  border: 1px solid rgba(196,148,98,0.12);
+}
+html:not(.light) .rmf-btn:hover {
+  background: rgba(196,148,98,0.14);
+}
+
+/* ── 0-16. アノテーションパネル ── */
+html:not(.light) .tech-annotation-panel {
+  background: rgba(8,5,3,0.5) !important;
+  border: 1px solid rgba(56,217,240,0.10) !important;
+}
+html:not(.light) .tech-annotation-section+.tech-annotation-section {
+  border-top: 1px solid rgba(56,217,240,0.10) !important;
+}
+
+/* ── 0-17. スクロールバー（コントラスト向上）── */
+html:not(.light) ::-webkit-scrollbar-track {
+  background: #080503;
+}
+html:not(.light) ::-webkit-scrollbar-thumb {
+  background: rgba(196,148,98,0.20);
+}
+html:not(.light) ::-webkit-scrollbar-thumb:hover {
+  background: rgba(196,148,98,0.35);
+}
+
+/* ── 0-18. リングの背景（スコアカード内）── */
+html:not(.light) .score-card .ring-container {
+  background: rgba(8,5,3,0.4);
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3), inset -1px -1px 3px rgba(74,46,30,0.06);
+}
+
+/* ── 0-19. モーダルの背景 ── */
+html:not(.light) div[style*="position:fixed"][style*="rgba(0,0,0,0.7)"] > div {
+  border: 1px solid rgba(196,148,98,0.20) !important;
+}
+
+/* ── 0-20. KPIカードのアクセントライン ── */
+html:not(.light) .kpi-card::before {
+  height: 3px;
+  opacity: 0.9;
+}
+
+/* ── 0-21. サマリーセクション ── */
+html:not(.light) .summary-section {
+  background: rgba(22,15,10,0.85) !important;
+  border: 1px solid rgba(196,148,98,0.15);
+}
+html:not(.light) .summary-header {
+  background: rgba(8,5,3,0.5) !important;
+  border-bottom: 1px solid rgba(196,148,98,0.12) !important;
+}
+
+/* ── 0-22. レーダーチャートセクション ── */
+html:not(.light) .radar-section {
+  background: rgba(22,15,10,0.85) !important;
+  border: 1px solid rgba(196,148,98,0.15);
+}
+
+/* ─── 1. TYPOGRAPHY REFINEMENT ─── */
+/* バッジ・ラベルの最低フォントサイズを引き上げ（9px→11px） */
+.xai-badge, .lifecycle-badge, .nist-badge {
+  font-size: 11px !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  letter-spacing: 0.2px;
+}
+.technique-tactic {
+  font-size: 11px;
+}
+.technique-id {
+  font-size: 12px;
+}
+.technique-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.technique-risk {
+  font-size: 11px;
+  padding: 3px 10px;
+}
+.phase-header .phase-count {
+  font-size: 13px;
+}
+
+/* スコアカード内テキストの視認性向上 */
+.score-card .label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.score-card .score-sub {
+  font-size: 12px;
+}
+
+/* ─── 2. TAB NAVIGATION — 現在地の明確化 ─── */
+.tabs {
+  padding: 5px;
+  gap: 3px;
+  border-radius: 14px;
+  position: relative;
+  /* スティッキーにしてスクロール時も見失わない */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.tab {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  min-height: 44px; /* タッチターゲット確保 */
+}
+.tab.active {
+  background: rgba(232, 67, 26, 0.12) !important;
+  color: var(--mars-red) !important;
+  box-shadow: var(--neu-shadow-btn), inset 0 0 0 1px rgba(232, 67, 26, 0.25);
+}
+/* アクティブタブに下線インジケータ */
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--mars-red);
+  animation: tab-indicator 0.3s ease forwards;
+}
+@keyframes tab-indicator {
+  from { width: 0; opacity: 0; }
+  to { width: 24px; opacity: 1; }
+}
+.tab:hover:not(.active) {
+  background: var(--mars-rock-hi);
+  transform: translateY(-1px);
+}
+/* フォーカスリングの明確化 */
+.tab:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: 2px;
+}
+
+/* タブグループラベルの調整 */
+.tab-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.6;
+  padding: 0 8px;
+}
+
+/* ─── 3. BUTTON FEEDBACK — クリック感の強化 ─── */
+.btn {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 44px; /* タッチターゲット */
+  position: relative;
+  overflow: hidden;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.btn:active {
+  transform: translateY(0) scale(0.97);
+  opacity: 1 !important;
+  box-shadow: var(--neu-shadow-btn-press);
+  transition-duration: 0.08s;
+}
+/* フォーカスリング */
+.btn:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: 2px;
+}
+
+/* ステータスボタンの選択状態強化 — 色だけでなくアイコン的シグナルも */
+.status-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  min-height: 36px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+.status-btn:hover {
+  transform: translateY(-1px);
+}
+/* 選択中は左にドット付きボーダーで色以外のシグナル追加 */
+.status-btn.selected-full,
+.status-btn.selected-partial,
+.status-btn.selected-minimal,
+.status-btn.selected-none,
+.status-btn.selected-na,
+.status-btn.selected-tested {
+  border-width: 2px;
+  border-style: solid;
+  font-weight: 700;
+  transform: translateY(-1px);
+  box-shadow: var(--neu-shadow-btn-press), 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ─── 4. EXPORT BAR — 優先度の視覚的階層化 ─── */
+.export-bar {
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--mars-dust);
+  padding-bottom: 16px;
+}
+/* プライマリアクション（プリセット・レポート）を大きく */
+.export-bar .btn:first-child,
+.export-bar .btn:nth-child(3) {
+  flex: 0 0 auto;
+}
+/* セカンダリアクション（CSV/JSON等）をやや控えめに */
+.export-bar .btn:nth-child(n+4) {
+  font-size: 12px;
+  padding: 8px 14px;
+  opacity: 0.85;
+}
+.export-bar .btn:nth-child(n+4):hover {
+  opacity: 1;
+}
+
+/* ─── 5. KPI CARDS — 読取速度の最適化 ─── */
+.kpi-card {
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: all 0.25s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.kpi-num {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+.kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.kpi-sub {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.kpi-badge {
+  font-size: 11px;
+  padding: 3px 9px;
+}
+
+/* ─── 6. SCORE CARDS — リングの呼吸感 ─── */
+.score-card {
+  border-radius: 16px;
+  padding: 20px 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.score-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+/* ring-container / svg.ring / ring-text はSVG viewBox=70px基準のため変更しない */
+
+/* ─── 7. PHASE SECTIONS — アコーディオンの操作性 ─── */
+.phase-section {
+  border-radius: 14px;
+  margin-bottom: 14px;
+  transition: all 0.3s ease;
+}
+.phase-header {
+  padding: 18px 24px;
+  min-height: 60px;
+}
+.phase-header:hover {
+  background: var(--mars-rock-hi) !important;
+}
+.phase-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.phase-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+.phase-score {
+  font-size: 22px;
+}
+.phase-bar-container {
+  width: 140px;
+  height: 10px;
+  border-radius: 5px;
+}
+.phase-bar {
+  border-radius: 5px;
+}
+/* シェブロンの回転アニメーション滑らか化 */
+.chevron {
+  font-size: 18px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── 8. TECHNIQUE CARDS — 情報密度の最適化 ─── */
+.technique-grid {
+  gap: 14px;
+  padding: 18px 24px;
+}
+.technique-card {
+  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.technique-card:hover {
+  border-color: var(--mars-rim);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* ─── 9. MODAL — キーボード操作・フォーカス視認性 ─── */
+/* モーダルのオーバーレイにアニメーション */
+div[style*="position:fixed"][style*="rgba(0,0,0,0.7)"] {
+  animation: modal-overlay-in 0.2s ease;
+}
+@keyframes modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* モーダルコンテンツにスケールイン */
+div[style*="position:fixed"][style*="rgba(0,0,0,0.7)"] > div {
+  animation: modal-content-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modal-content-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ─── 10. VIZ PANELS & CHARTS ─── */
+.viz-panel {
+  border-radius: 14px;
+  transition: all 0.25s ease;
+}
+.viz-panel:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.viz-panel-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+.mini-bar-row {
+  margin-bottom: 9px;
+}
+.mini-bar-label {
+  font-size: 11px;
+  min-width: 120px;
+}
+.mini-bar-track {
+  height: 9px;
+  border-radius: 5px;
+}
+.mini-bar-val {
+  font-size: 11px;
+}
+
+/* ─── 11. SUMMARY TABLE — 行の可読性 ─── */
+.summary-table th {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 12px 18px;
+}
+.summary-table td {
+  font-size: 13px;
+  padding: 12px 18px;
+  line-height: 1.5;
+}
+.summary-table tr:hover td {
+  background: rgba(42, 28, 20, 0.6);
+  transition: background 0.15s;
+}
+
+/* ─── 12. RMF CARDS ─── */
+.nist-rmf-grid {
+  gap: 18px;
+}
+.rmf-card {
+  border-radius: 14px;
+}
+.rmf-header {
+  padding: 16px 20px;
+}
+.rmf-header h3 {
+  font-size: 15px;
+}
+.rmf-body {
+  padding: 16px 20px;
+}
+.rmf-id {
+  font-size: 11px;
+  min-width: 80px;
+}
+.rmf-fn {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.rmf-btn {
+  padding: 3px 9px;
+  font-size: 10px;
+  min-height: 28px;
+  border: 1px solid transparent;
+}
+
+/* ─── 13. CUSTOMER BAR ─── */
+.customer-bar {
+  border-radius: 14px;
+  padding: 16px 22px;
+  gap: 14px;
+}
+.customer-bar label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.customer-bar input {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--mars-dust);
+  min-height: 44px; /* タッチターゲット */
+}
+
+/* ─── 14. HEADER ─── */
+.header {
+  border-radius: 16px;
+  padding: 22px 30px;
+}
+.header-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+.header h1 {
+  font-size: 20px;
+}
+.header .subtitle {
+  font-size: 12px;
+  margin-top: 5px;
+  letter-spacing: 0.4px;
+}
+
+/* ─── 15. LEGEND ─── */
+.legend {
+  border-radius: 12px;
+  padding: 14px 22px;
+  gap: 18px;
+}
+.legend-item {
+  font-size: 13px;
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+}
+
+/* ─── 16. ANNOTATION PANEL ─── */
+.tech-annotation-btn {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  min-height: 32px;
+}
+.tech-annotation-text {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.tech-annotation-label {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ─── 17. SCROLLBAR — 太く取りやすく ─── */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+  background-clip: content-box;
+}
+
+/* ─── 18. RT FLAG ─── */
+.rt-flag {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  min-height: 30px;
+}
+
+/* ═══════════════════════════════════════════
+   19. RESPONSIVE — タブレット・モバイル対応
+   ═══════════════════════════════════════════ */
+
+/* タブレット（768px〜1024px） */
+@media (max-width: 1024px) {
+  .app { padding: 16px; }
+  .header { padding: 18px 22px; }
+  .header h1 { font-size: 17px; }
+  
+  /* ダッシュボードスコアカードを2列に */
+  .dashboard {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px;
+  }
+  
+  /* タブを折り返し可能に */
+  .tabs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tab {
+    flex: 1 1 auto;
+    min-width: 120px;
+    font-size: 11px;
+    padding: 10px 10px;
+  }
+  .tab-group-label {
+    display: none;
+  }
+  .tab-separator {
+    display: none;
+  }
+  
+  /* エクスポートバーを折り返し */
+  .export-bar {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  
+  /* テクニックグリッドを1列に */
+  .technique-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* RMFグリッドを1列に */
+  .nist-rmf-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* モバイル（〜768px） */
+@media (max-width: 768px) {
+  .app { padding: 12px; }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+  .header h1 { font-size: 16px; }
+  .header .subtitle { font-size: 10px; }
+  
+  .customer-bar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .customer-bar input {
+    width: 100% !important;
+  }
+  
+  .dashboard {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  
+  /* KPIカードを2列 */
+  
+  /* タブを横スクロール */
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex: 0 0 auto;
+    min-width: fit-content;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  
+  /* エクスポートバー */
+  .export-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .export-bar .btn {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  /* フェーズヘッダー調整 */
+  .phase-header {
+    padding: 14px 16px;
+  }
+  .phase-bar-container {
+    width: 80px;
+  }
+  
+  /* テクニックグリッド */
+  .technique-grid {
+    grid-template-columns: 1fr !important;
+    padding: 12px 14px;
+  }
+  
+  /* レジェンドを折り返し */
+  .legend {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+}
+
+/* 小型モバイル（〜480px） */
+@media (max-width: 480px) {
+  .app { padding: 8px; }
+  
+  .dashboard {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  
+  .kpi-num {
+    font-size: 28px;
+  }
+  
+  .header h1 {
+    font-size: 14px;
+  }
+  
+  .phase-header-right {
+    gap: 8px;
+  }
+  .phase-score {
+    font-size: 18px;
+  }
+  .phase-bar-container {
+    width: 60px;
+    display: none; /* 超小画面ではバーを非表示 */
+  }
+  
+  /* ステータスボタン横並びの折り返し */
+  .status-selector {
+    gap: 3px;
+  }
+  .status-btn {
+    font-size: 10px;
+    padding: 4px 7px;
+    min-height: 32px;
+  }
+  
+  .meta-badges {
+    gap: 3px;
+  }
+}
+
+/* ─── 20. PREFERS-REDUCED-MOTION ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  body::after {
+    animation: none !important;
+  }
+}
+
+/* ─── 21. FOCUS MANAGEMENT — キーボードユーザー ─── */
+*:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* マウスクリック時はフォーカスリングを非表示 */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── 22. SMOOTH SCROLL ─── */
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ─── 23. SELECTION COLORS ─── */
+::selection {
+  background: rgba(232, 67, 26, 0.3);
+  color: var(--dust-primary);
+}
+
+/* ─── 24. CONTEXT BANNER ─── */
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  /* バナー内を縦積みに */
+  div[style*="flex:'1 1 320px'"] {
+    min-width: 100% !important;
+  }
+}
 
 /* ═══ PRINT STYLES ═══ */
 @media print{
@@ -1360,7 +2315,7 @@ const TECHNIQUES = [
   tobe:"SSE: インライン検査でデコード後のペイロードを検知",cat:"SSE",
   xaiLevel:4,aiActLifecycle:["operate"],nistRef:"MEASURE-2.7",
   ztAction:"AP-02 Lv3-4（サンドボックス＋AI防御）。NW-03 Lv3-4（全通信検査）でデコード後のペイロード検知。"},
-{id:"T1189",name:"ドライブバイコンプロマイズ",tactic:"Initial Access",phase:"exfil",risk:"high",
+{id:"T1189",name:"ドライブバイコンプロマイズ",tactic:"Initial Access",phase:"recon",risk:"high",
   desc:"正規Webサイト閲覧だけでブラウザやプラグインの脆弱性を悪用しマルウェア感染させる手法。水飲み場攻撃（標的がよく訪問するサイト改ざん）として実行。ユーザーの明示的操作なしに感染する。",
   tobe:"ZT Browser: ブラウザ分離でWeb経由の攻撃を完全無害化",cat:"ZTB",
   xaiLevel:4,aiActLifecycle:["operate"],nistRef:"MEASURE-2.7",
@@ -1841,6 +2796,164 @@ const PILLAR_COLORS={Identity:"#3b82f6",Devices:"#8b5cf6","Networks":"#06b6d4","
 const PILLAR_ICONS={Identity:"🔐",Devices:"💻",Networks:"🌐","App & Workload":"⚡",Data:"📦","Cross-Cutting":"🔄"};
 
 // ===== COMPONENTS =====
+
+// ===== CONTEXT BANNER COMPONENT =====
+// 全タブ冒頭に表示：現在地＋リアルタイム脅威カバレッジ
+const VIEW_META={
+  'zt-dashboard':{icon:'🏛️',title:'ZTダッシュボード',desc:'CISA ZTMM v2の6ピラー×18コントロールのAS-IS/TO-BEを定義し、ゼロトラスト成熟度を可視化します。',step:'1/3',flow:'成熟度定義'},
+  'threat-map':{icon:'⚔️',title:'脅威×ZTマッピング',desc:'MITRE ATT&CK 50技法＋ATLAS 13技法に対し、TO-BEレベルがどの脅威を解消するかをクロスマッピングします。',step:'2/3',flow:'脅威分析'},
+  'actions':{icon:'🎯',title:'アクション計画',desc:'AS-IS→TO-BEのギャップから自動導出されたアクションを、Quick Win / 短期 / 戦略の3フェーズに分類します。',step:'3/3',flow:'実行計画'},
+  'assess':{icon:'📋',title:'脅威評価（検証）',desc:'各攻撃技法の実装対応ステータスを個別評価し、Red Team検証結果を記録します。',step:'補足',flow:'詳細検証'},
+  'governance':{icon:'🔷',title:'ガバナンス（AI RMF）',desc:'NIST AI RMF 1.0の17サブカテゴリへの準拠状況を評価し、ZTMMコントロールとの対応関係を確認します。',step:'補足',flow:'AI統制'},
+};
+
+function ContextBanner({activeView,threatCoverage,ztmmOverall,actionItems,mitigatedByAsIs,mitigatedByZtmm}){
+  const meta=VIEW_META[activeView];
+  if(!meta)return null;
+  const covPct=threatCoverage.total>0?Math.round((threatCoverage.coveredToBe/threatCoverage.total)*100):0;
+  const asisPct=threatCoverage.total>0?Math.round((threatCoverage.coveredAsIs/threatCoverage.total)*100):0;
+  const gap=ztmmOverall.tgt-ztmmOverall.cur;
+
+  // Phase-level breakdown
+  const phaseBreakdown=Object.entries(PHASES).map(([key,ph])=>{
+    const techs=TECHNIQUES.filter(t=>t.phase===key);
+    const total=techs.length;
+    const asis=mitigatedByAsIs?techs.filter(t=>mitigatedByAsIs.has(t.id)).length:0;
+    const tobe=mitigatedByZtmm?techs.filter(t=>mitigatedByZtmm.has(t.id)).length:0;
+    const newlyMitigated=tobe-asis;
+    return{key,label:ph.label,icon:ph.icon,color:ph.color,total,asis,tobe,newlyMitigated};
+  });
+
+  // Action phase breakdown (for actions tab)
+  const actionPhases=activeView==='actions'?{
+    qw:actionItems.filter(a=>a.phase==='quick-win'),
+    st:actionItems.filter(a=>a.phase==='short-term'),
+    sg:actionItems.filter(a=>a.phase==='strategic'),
+  }:null;
+
+  return(
+    <div style={{marginBottom:16,
+      background:'linear-gradient(135deg, var(--mars-rock), var(--mars-rock-hi))',
+      border:'1px solid var(--mars-rim)',borderRadius:14,
+      overflow:'hidden'}}>
+      {/* Row 1: Context + Live Metrics */}
+      <div style={{padding:'14px 20px',display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
+        {/* Left: current view context */}
+        <div style={{flex:'1 1 300px',minWidth:260}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+            <span style={{fontSize:20}}>{meta.icon}</span>
+            <span style={{fontSize:15,fontWeight:800,color:'var(--dust-primary)'}}>{meta.title}</span>
+            <span style={{fontSize:10,padding:'2px 8px',borderRadius:4,
+              background:'rgba(232,67,26,0.1)',border:'1px solid rgba(232,67,26,0.25)',
+              color:'var(--mars-red)',fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>
+              {meta.step}
+            </span>
+            <span style={{fontSize:10,color:'var(--dust-muted)',fontWeight:600}}>{meta.flow}</span>
+          </div>
+          <div style={{fontSize:12,color:'var(--dust-secondary)',lineHeight:1.5}}>{meta.desc}</div>
+        </div>
+        {/* Right: live metrics */}
+        <div style={{display:'flex',gap:16,alignItems:'center',flex:'0 0 auto'}}>
+          <div style={{textAlign:'center',minWidth:64}}>
+            <div style={{fontSize:9,color:'var(--dust-muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:3}}>成熟度</div>
+            <div style={{display:'flex',alignItems:'baseline',justifyContent:'center',gap:3}}>
+              <span className="mono" style={{fontSize:20,fontWeight:800,
+                color:ztmmOverall.cur>=75?'var(--accent-green)':ztmmOverall.cur>=50?'var(--accent-yellow)':'var(--mars-red)'}}>{ztmmOverall.cur}</span>
+              <span style={{color:'var(--dust-muted)',fontSize:11}}>→</span>
+              <span className="mono" style={{fontSize:20,fontWeight:800,color:'var(--plasma-cyan)'}}>{ztmmOverall.tgt}</span>
+            </div>
+            {gap>0&&<div style={{fontSize:9,color:'var(--accent-cyan)',fontWeight:600}}>+{gap}</div>}
+          </div>
+          <div style={{width:1,height:40,background:'var(--mars-dust)'}}/>
+          <div style={{textAlign:'center',minWidth:90}}>
+            <div style={{fontSize:9,color:'var(--dust-muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:3}}>脅威カバレッジ</div>
+            <div style={{display:'flex',alignItems:'baseline',justifyContent:'center',gap:4}}>
+              <span className="mono" style={{fontSize:20,fontWeight:800,color:'var(--accent-green)'}}>{threatCoverage.coveredAsIs}</span>
+              <span style={{color:'var(--dust-muted)',fontSize:11}}>→</span>
+              <span className="mono" style={{fontSize:20,fontWeight:800,color:'var(--plasma-cyan)'}}>{threatCoverage.coveredToBe}</span>
+              <span className="mono" style={{fontSize:12,color:'var(--dust-muted)'}}>/{threatCoverage.total}</span>
+            </div>
+            <div style={{height:4,background:'rgba(148,163,184,0.15)',borderRadius:2,marginTop:4,overflow:'hidden',position:'relative'}}>
+              <div style={{position:'absolute',left:0,top:0,bottom:0,width:`${asisPct}%`,background:'var(--accent-green)',opacity:0.5,borderRadius:2}}/>
+              <div style={{position:'absolute',left:0,top:0,bottom:0,width:`${covPct}%`,background:'var(--plasma-cyan)',opacity:0.7,borderRadius:2}}/>
+            </div>
+          </div>
+          <div style={{width:1,height:40,background:'var(--mars-dust)'}}/>
+          <div style={{textAlign:'center',minWidth:60}}>
+            <div style={{fontSize:9,color:'var(--dust-muted)',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:3}}>アクション</div>
+            <div className="mono" style={{fontSize:20,fontWeight:800,color:'var(--accent-yellow)'}}>{actionItems.length}</div>
+            <div style={{fontSize:9,color:'var(--dust-muted)'}}>
+              {actionItems.filter(a=>a.priority==='critical').length>0&&
+                <span style={{color:'var(--accent-red)',fontWeight:600}}>C:{actionItems.filter(a=>a.priority==='critical').length} </span>}
+              {actionItems.filter(a=>a.priority==='high').length>0&&
+                <span style={{color:'var(--accent-yellow)'}}>H:{actionItems.filter(a=>a.priority==='high').length}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: Phase-level threat coverage strip */}
+      <div style={{padding:'8px 20px 10px',borderTop:'1px solid var(--mars-dust)',
+        display:'flex',gap:6,alignItems:'stretch',flexWrap:'wrap'}}>
+        {phaseBreakdown.map(ph=>{
+          const pct=ph.total>0?Math.round((ph.tobe/ph.total)*100):0;
+          const asiPct=ph.total>0?Math.round((ph.asis/ph.total)*100):0;
+          return(
+            <div key={ph.key} style={{flex:'1 1 0',minWidth:100,padding:'6px 10px',
+              background:'rgba(0,0,0,0.12)',borderRadius:8,
+              display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:13,flexShrink:0}}>{ph.icon}</span>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:3}}>
+                  <span style={{fontSize:10,fontWeight:700,color:ph.color,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{ph.label}</span>
+                  <span className="mono" style={{fontSize:11,fontWeight:800,color:ph.color,flexShrink:0}}>{ph.tobe}/{ph.total}</span>
+                </div>
+                {/* Stacked bar: AS-IS (dim) + TO-BE new (bright) */}
+                <div style={{height:5,background:'rgba(148,163,184,0.1)',borderRadius:3,overflow:'hidden',position:'relative'}}>
+                  <div style={{position:'absolute',left:0,top:0,bottom:0,width:`${asiPct}%`,background:ph.color,opacity:0.3,borderRadius:3}}/>
+                  <div style={{position:'absolute',left:0,top:0,bottom:0,width:`${pct}%`,background:ph.color,opacity:0.7,borderRadius:3}}/>
+                </div>
+                {ph.newlyMitigated>0&&(
+                  <div style={{fontSize:8,color:ph.color,fontWeight:600,marginTop:2}}>+{ph.newlyMitigated} TO-BE</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Row 3 (Actions tab only): Phase scope breakdown */}
+      {actionPhases&&actionItems.length>0&&(
+        <div style={{padding:'8px 20px 10px',borderTop:'1px solid var(--mars-dust)',
+          display:'flex',gap:10,alignItems:'center'}}>
+          <span style={{fontSize:10,color:'var(--dust-muted)',fontWeight:600,flexShrink:0}}>実行フェーズ:</span>
+          {[
+            {items:actionPhases.qw,label:'Quick Win（→Lv2）',color:'var(--accent-green)',icon:'⚡'},
+            {items:actionPhases.st,label:'短期施策（→Lv3）',color:'var(--accent-yellow)',icon:'📋'},
+            {items:actionPhases.sg,label:'戦略的施策（→Lv4）',color:'var(--accent-cyan)',icon:'🚀'},
+          ].map(p=>(
+            <div key={p.label} style={{flex:'1 1 0',padding:'6px 12px',borderRadius:8,
+              background:p.items.length>0?'rgba(0,0,0,0.12)':'transparent',
+              border:p.items.length>0?'1px solid var(--mars-dust)':'1px solid transparent',
+              display:'flex',alignItems:'center',gap:8,opacity:p.items.length>0?1:0.4}}>
+              <span style={{fontSize:14}}>{p.icon}</span>
+              <div>
+                <div style={{fontSize:11,fontWeight:700,color:p.color}}>{p.label}</div>
+                <div style={{fontSize:10,color:'var(--dust-muted)'}}>
+                  <span className="mono" style={{fontWeight:700,color:p.color}}>{p.items.length}</span> アクション
+                  {p.items.filter(a=>a.priority==='critical').length>0&&
+                    <span style={{color:'var(--accent-red)',fontWeight:600,marginLeft:4}}>
+                      C:{p.items.filter(a=>a.priority==='critical').length}
+                    </span>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ScoreRing({score,color,size=70}){
   const r=28;const circ=2*Math.PI*r;const offset=circ-(score/100)*circ;
@@ -2389,6 +3502,7 @@ function App(){
       {/* ===== ZT DASHBOARD VIEW ===== */}
       {activeView==='zt-dashboard'&&(
         <div>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
           {/* P4-10: Snapshot comparison banner */}
           {compareSnapshot&&(
             <div style={{marginBottom:12,padding:'10px 14px',background:'rgba(124,58,237,0.08)',border:'1px solid rgba(124,58,237,0.3)',borderRadius:8,display:'flex',alignItems:'center',gap:12}}>
@@ -2900,12 +4014,7 @@ function App(){
       {/* ===== THREAT × ZT MAPPING VIEW ===== */}
       {activeView==='threat-map'&&(
         <div>
-          <div style={{marginBottom:16,padding:'12px 16px',background:'var(--bg-secondary)',borderRadius:8,border:'1px solid var(--border)'}}>
-            <div style={{fontSize:13,color:'var(--text-secondary)',lineHeight:1.6}}>
-              各脅威テクニックが<span style={{color:'var(--accent-cyan)',fontWeight:600}}>どのZTMMコントロールで解消されるか</span>を可視化します。
-              ステータスはAS-IS/TO-BEの設定に連動し、ゼロトラスト改善による脅威解消の効果をリアルタイムに確認できます。
-            </div>
-          </div>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
 
           {/* P2-5: Threat Actor filter */}
           <div style={{marginBottom:10,padding:'8px 12px',background:'var(--mars-rock)',borderRadius:8,border:'1px solid var(--mars-dust)'}}>
@@ -3068,6 +4177,7 @@ function App(){
       {/* ===== ACTION PLAN VIEW ===== */}
       {activeView==='actions'&&(
         <div>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
           {actionItems.length===0?(
             <div style={{textAlign:'center',padding:40,color:'var(--text-muted)'}}>
               ZTMMのTO-BEレベルをAS-ISより高く設定すると、アクションカードが自動生成されます。
@@ -3221,6 +4331,7 @@ function App(){
       {/* ===== ASSESS VIEW (threat evaluation input) ===== */}
       {activeView==='assess'&&(
         <div>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
           <div style={{padding:'14px 18px',marginBottom:16,background:'linear-gradient(135deg,rgba(232,108,0,0.08),rgba(232,108,0,0.02))',border:'1px solid rgba(232,108,0,0.25)',borderLeft:'4px solid var(--accent-orange)',borderRadius:8}}>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
               <span style={{fontSize:16}}>🔍</span>
@@ -3410,6 +4521,7 @@ function App(){
       {/* ===== GOVERNANCE VIEW ===== */}
       {activeView==='governance'&&(
         <div>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
           {/* RMF Coverage Note */}
           <div style={{marginBottom:12,padding:'10px 14px',background:'rgba(124,58,237,0.06)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:8,cursor:'pointer'}}
             onClick={()=>setShowAispm(prev=>!prev)}>
