@@ -773,957 +773,474 @@ select:focus{
 @media(max-width:680px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.chart-2col{grid-template-columns:1fr;}}
 
 /* ═══════════════════════════════════════════
-   MAAZ v4.1.0 — UI/UX ENHANCEMENT LAYER
-   くろっち × たかさん共創  2026-03
-   CSSのみ改修 — ロジック変更ゼロ
+   MAAZ v4.1.0 — INDUSTRIAL PRECISION THEME
+   Anti-AI-slop redesign: 装飾排除・機能特化
    ═══════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════
-   0. DARK MODE VISIBILITY OVERHAUL
-   問題: 茶系ダークモードのコントラスト不足
-   方針: 火星テーマを保持しつつ、背景を深く・
-         テキストを明るく・カードの浮き上がりを強化
-   ═══════════════════════════════════════════ */
-
-/* ── 0-1. 背景の深化：カードとの分離を明確に ── */
+/* ─── DESIGN RESET: ニューモーフィズムの排除 ─── 
+   ニューモーフィズムは「AI生成UI感」の最大要因。
+   全てフラット＋1px borderに統一。影は最小限。 */
 :root {
-  /* 背景をさらに深い黒に。カードとの明度差を確保 */
-  --mars-black:    #080503;
-  --mars-deep:     #0e0906;
-  --mars-surface:  #140c07;
-
-  /* カードの不透明度を引き上げ → 背景から浮き上がる */
-  --mars-rock:     rgba(196,148,98,0.13);
-  --mars-rock-hi:  rgba(210,162,108,0.19);
-  --mars-dust:     rgba(196,148,98,0.22);
-  --mars-rim:      rgba(196,148,98,0.35);
-
-  /* テキスト3階層のコントラスト強化 */
-  --dust-primary:  #f8f2ea;      /* ほぼ白。対#080503=18.7:1 */
-  --dust-secondary:#dbc4a8;      /* ウォームベージュ。対#080503=10.4:1 */
-  --dust-muted:    #a08870;      /* 旧#7a6050→明るく。対#080503=5.2:1（WCAG AA） */
-
-  /* アクセント色の輝度微調整（暗い背景でより映える） */
-  --mars-red:      #f04e22;      /* 少し明るく */
-  --mars-orange:   #fb8332;
-  --mars-amber:    #e5950f;
-  --plasma-cyan:   #38d9f0;      /* シアンをより鮮やかに */
-  --bio-green:     #22c55e;      /* グリーンを明るく */
-  --deep-violet:   #8b5cf6;      /* バイオレットを明るく */
-
-  /* ステータスNA — 旧色が暗すぎた */
-  --status-na:     #6b5240;
-
-  /* グロー効果を強化 */
-  --glow-mars: 0 0 28px rgba(240,78,34,0.40);
-  --glow-cyan: 0 0 20px rgba(56,217,240,0.30);
+  --neu-shadow-out: none;
+  --neu-shadow-in: none;
+  --neu-shadow-btn: none;
+  --neu-shadow-btn-press: none;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --card-shadow-hover: 0 2px 8px rgba(0,0,0,0.4);
+  --card-border: 1px solid var(--mars-dust);
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-xs: 4px;
+  --transition: all 0.15s ease;
 }
 
-/* ── 0-2. bodyの背景勾配を深化 ── */
-body {
-  background: #080503;
-}
-body::before {
-  background:
-    radial-gradient(ellipse 120% 45% at 50% 100%, rgba(180,60,10,0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at -10% 0%, rgba(200,80,20,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 60% at 110% 20%, rgba(160,50,10,0.10) 0%, transparent 55%),
-    repeating-linear-gradient(160deg, transparent, transparent 60px,
-      rgba(180,100,40,0.02) 60px, rgba(180,100,40,0.02) 61px),
-    repeating-linear-gradient(80deg, transparent, transparent 90px,
-      rgba(140,70,20,0.015) 90px, rgba(140,70,20,0.015) 91px) !important;
+/* ─── BODY: 背景エフェクトの抑制 ─── */
+body::after {
+  opacity: 0.3 !important; /* パーティクルを大幅に薄く */
+  animation-duration: 120s !important;
 }
 
-/* ── 0-3. カード・パネルの背景を半透明→やや不透明に ── */
-.score-card,
-.technique-card,
-.kpi-card,
-.viz-panel,
-.rmf-card,
-.phase-section,
-.customer-bar,
-.legend {
-  background: rgba(22,15,10,0.85) !important;
-  border: 1px solid rgba(196,148,98,0.15);
-}
-.score-card:hover,
-.technique-card:hover,
-.kpi-card:hover {
-  background: rgba(28,20,14,0.90) !important;
-  border-color: rgba(196,148,98,0.25);
-}
-
-/* ── 0-4. ヘッダーの背景強化 ── */
+/* ─── HEADER: 簡潔に ─── */
 .header {
-  background: linear-gradient(135deg, rgba(18,12,8,0.97), rgba(28,18,12,0.95)) !important;
-  border-bottom: 1px solid rgba(196,148,98,0.12);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  box-shadow: none;
+  border: var(--card-border);
+  border-top: 2px solid var(--mars-red);
+  background: var(--mars-rock);
+  backdrop-filter: none;
 }
-
-/* ── 0-5. タブの可視性 ── */
-.tabs {
-  background: rgba(22,15,10,0.90) !important;
-  border: 1px solid rgba(196,148,98,0.12);
+.header::after { display: none; } /* 赤グロー排除 */
+.header-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  box-shadow: none;
 }
-.tab {
-  color: var(--dust-muted);
+.header h1 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
-.tab:hover:not(.active) {
-  color: var(--dust-secondary);
-  background: rgba(196,148,98,0.10) !important;
-}
-
-/* ── 0-6. インプットフィールド ── */
-html:not(.light) input,
-html:not(.light) select {
-  background: rgba(8,5,3,0.6) !important;
-  color: var(--dust-primary) !important;
-  border: 1px solid rgba(196,148,98,0.25) !important;
-}
-html:not(.light) input:focus,
-html:not(.light) select:focus {
-  border-color: var(--mars-red) !important;
-  background: rgba(8,5,3,0.8) !important;
-  box-shadow: 0 0 0 2px rgba(240,78,34,0.15) !important;
-}
-html:not(.light) input::placeholder {
-  color: var(--dust-muted);
+.header .subtitle {
+  font-size: 11px;
+  margin-top: 3px;
   opacity: 0.7;
 }
-
-/* ── 0-7. ステータスボタンの視認性強化 ── */
-html:not(.light) .status-btn {
-  background: rgba(196,148,98,0.08);
-  color: var(--dust-muted);
-  border: 1px solid rgba(196,148,98,0.12);
-}
-html:not(.light) .status-btn:hover {
-  background: rgba(196,148,98,0.14);
-  color: var(--dust-secondary);
-}
-/* 選択状態の背景を少し強く */
-html:not(.light) .status-btn.selected-full {
-  background: rgba(34,197,94,0.18) !important;
-}
-html:not(.light) .status-btn.selected-partial {
-  background: rgba(229,149,15,0.18) !important;
-}
-html:not(.light) .status-btn.selected-minimal {
-  background: rgba(251,131,50,0.18) !important;
-}
-html:not(.light) .status-btn.selected-none {
-  background: rgba(239,68,68,0.18) !important;
-}
-html:not(.light) .status-btn.selected-tested {
-  background: rgba(56,217,240,0.15) !important;
+.v3-badge {
+  box-shadow: none;
+  border-radius: var(--radius-xs);
+  font-size: 10px;
+  padding: 2px 8px;
 }
 
-/* ── 0-8. バッジの視認性（半透明背景の強化）── */
-html:not(.light) .xai-badge {
-  background: rgba(255,255,255,0.08) !important;
-  border: 1px solid currentColor !important;
-  border-opacity: 0.3;
+/* ─── CUSTOMER BAR ─── */
+.customer-bar {
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  gap: 12px;
+  box-shadow: none;
+  border: var(--card-border);
 }
-html:not(.light) .lifecycle-badge,
-html:not(.light) .nist-badge {
-  background: rgba(255,255,255,0.07) !important;
-  color: var(--dust-secondary) !important;
-  border: 1px solid rgba(196,148,98,0.2) !important;
-}
-
-/* ── 0-9. テーブルの行の区切り強化 ── */
-html:not(.light) .summary-table th {
-  background: rgba(14,9,6,0.7) !important;
-  color: var(--dust-secondary) !important;
-  border-bottom: 2px solid rgba(196,148,98,0.25) !important;
-}
-html:not(.light) .summary-table td {
-  border-bottom: 1px solid rgba(196,148,98,0.10) !important;
-}
-html:not(.light) .summary-table tr:hover td {
-  background: rgba(196,148,98,0.08) !important;
-}
-
-/* ── 0-10. フェーズヘッダーのホバー ── */
-html:not(.light) .phase-header:hover {
-  background: rgba(196,148,98,0.08) !important;
-}
-
-/* ── 0-11. プログレスバーのトラック ── */
-html:not(.light) .phase-bar-container {
-  background: rgba(196,148,98,0.15) !important;
-}
-html:not(.light) .mini-bar-track {
-  background: rgba(196,148,98,0.12) !important;
-}
-
-/* ── 0-12. ボタンの可視性 ── */
-html:not(.light) .btn {
-  background: rgba(196,148,98,0.08);
-  border: 1px solid rgba(196,148,98,0.20) !important;
-}
-html:not(.light) .btn:hover {
-  background: rgba(196,148,98,0.15);
-  border-color: rgba(196,148,98,0.30) !important;
-}
-
-/* ── 0-13. エクスポートバーの区切り ── */
-html:not(.light) .export-bar {
-  border-bottom: 1px solid rgba(196,148,98,0.15);
-}
-
-/* ── 0-14. RT Flag ── */
-html:not(.light) .rt-flag.off {
-  background: rgba(196,148,98,0.06);
-  color: var(--dust-muted);
-}
-
-/* ── 0-15. RMF カード内部 ── */
-html:not(.light) .rmf-header {
-  background: rgba(8,5,3,0.4) !important;
-  border-bottom: 1px solid rgba(196,148,98,0.12) !important;
-}
-html:not(.light) .rmf-item {
-  border-bottom: 1px solid rgba(196,148,98,0.10) !important;
-}
-html:not(.light) .rmf-btn {
-  background: rgba(196,148,98,0.08);
-  border: 1px solid rgba(196,148,98,0.12);
-}
-html:not(.light) .rmf-btn:hover {
-  background: rgba(196,148,98,0.14);
-}
-
-/* ── 0-16. アノテーションパネル ── */
-html:not(.light) .tech-annotation-panel {
-  background: rgba(8,5,3,0.5) !important;
-  border: 1px solid rgba(56,217,240,0.10) !important;
-}
-html:not(.light) .tech-annotation-section+.tech-annotation-section {
-  border-top: 1px solid rgba(56,217,240,0.10) !important;
-}
-
-/* ── 0-17. スクロールバー（コントラスト向上）── */
-html:not(.light) ::-webkit-scrollbar-track {
-  background: #080503;
-}
-html:not(.light) ::-webkit-scrollbar-thumb {
-  background: rgba(196,148,98,0.20);
-}
-html:not(.light) ::-webkit-scrollbar-thumb:hover {
-  background: rgba(196,148,98,0.35);
-}
-
-/* ── 0-18. リングの背景（スコアカード内）── */
-html:not(.light) .score-card .ring-container {
-  background: rgba(8,5,3,0.4);
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3), inset -1px -1px 3px rgba(74,46,30,0.06);
-}
-
-/* ── 0-19. モーダルの背景 ── */
-html:not(.light) div[style*="position:fixed"][style*="rgba(0,0,0,0.7)"] > div {
-  border: 1px solid rgba(196,148,98,0.20) !important;
-}
-
-/* ── 0-20. KPIカードのアクセントライン ── */
-html:not(.light) .kpi-card::before {
-  height: 3px;
-  opacity: 0.9;
-}
-
-/* ── 0-21. サマリーセクション ── */
-html:not(.light) .summary-section {
-  background: rgba(22,15,10,0.85) !important;
-  border: 1px solid rgba(196,148,98,0.15);
-}
-html:not(.light) .summary-header {
-  background: rgba(8,5,3,0.5) !important;
-  border-bottom: 1px solid rgba(196,148,98,0.12) !important;
-}
-
-/* ── 0-22. レーダーチャートセクション ── */
-html:not(.light) .radar-section {
-  background: rgba(22,15,10,0.85) !important;
-  border: 1px solid rgba(196,148,98,0.15);
-}
-
-/* ─── 1. TYPOGRAPHY REFINEMENT ─── */
-/* バッジ・ラベルの最低フォントサイズを引き上げ（9px→11px） */
-.xai-badge, .lifecycle-badge, .nist-badge {
-  font-size: 11px !important;
-  padding: 2px 8px !important;
-  border-radius: 4px !important;
-  letter-spacing: 0.2px;
-}
-.technique-tactic {
-  font-size: 11px;
-}
-.technique-id {
-  font-size: 12px;
-}
-.technique-name {
-  font-size: 14px;
-  font-weight: 600;
-}
-.technique-risk {
-  font-size: 11px;
-  padding: 3px 10px;
-}
-.phase-header .phase-count {
+.customer-bar label { font-size: 12px; font-weight: 600; }
+.customer-bar input {
+  padding: 8px 12px;
   font-size: 13px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--mars-dust);
+  background: rgba(0,0,0,0.2);
+  min-height: 40px;
+}
+.customer-bar input:focus {
+  border-color: var(--mars-red);
+  box-shadow: 0 0 0 2px rgba(232,67,26,0.12);
 }
 
-/* スコアカード内テキストの視認性向上 */
-.score-card .label {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-.score-card .score-sub {
-  font-size: 12px;
-}
-
-/* ─── 2. TAB NAVIGATION — 現在地の明確化 ─── */
+/* ─── TABS: 機能的に、装飾なく ─── */
 .tabs {
-  padding: 5px;
-  gap: 3px;
-  border-radius: 14px;
-  position: relative;
-  /* スティッキーにしてスクロール時も見失わない */
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--radius);
+  border: var(--card-border);
+  box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--mars-black);
 }
 .tab {
-  padding: 12px 14px;
-  font-size: 12px;
+  padding: 10px 14px;
+  font-size: 11px;
   font-weight: 600;
-  border-radius: 10px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  min-height: 44px; /* タッチターゲット確保 */
-}
-.tab.active {
-  background: rgba(232, 67, 26, 0.12) !important;
-  color: var(--mars-red) !important;
-  box-shadow: var(--neu-shadow-btn), inset 0 0 0 1px rgba(232, 67, 26, 0.25);
-}
-/* アクティブタブに下線インジケータ */
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--mars-red);
-  animation: tab-indicator 0.3s ease forwards;
-}
-@keyframes tab-indicator {
-  from { width: 0; opacity: 0; }
-  to { width: 24px; opacity: 1; }
-}
-.tab:hover:not(.active) {
-  background: var(--mars-rock-hi);
-  transform: translateY(-1px);
-}
-/* フォーカスリングの明確化 */
-.tab:focus-visible {
-  outline: 2px solid var(--mars-red);
-  outline-offset: 2px;
-}
-
-/* タブグループラベルの調整 */
-.tab-group-label {
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.6;
-  padding: 0 8px;
-}
-
-/* ─── 3. BUTTON FEEDBACK — クリック感の強化 ─── */
-.btn {
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 44px; /* タッチターゲット */
-  position: relative;
-  overflow: hidden;
-}
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-.btn:active {
-  transform: translateY(0) scale(0.97);
-  opacity: 1 !important;
-  box-shadow: var(--neu-shadow-btn-press);
-  transition-duration: 0.08s;
-}
-/* フォーカスリング */
-.btn:focus-visible {
-  outline: 2px solid var(--mars-red);
-  outline-offset: 2px;
-}
-
-/* ステータスボタンの選択状態強化 — 色だけでなくアイコン的シグナルも */
-.status-btn {
-  padding: 5px 10px;
-  font-size: 12px;
-  border-radius: 6px;
-  min-height: 36px;
-  transition: all 0.15s ease;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  min-height: 40px;
+  color: var(--dust-muted);
   border: 1px solid transparent;
 }
-.status-btn:hover {
-  transform: translateY(-1px);
+.tab:hover:not(.active) {
+  color: var(--dust-secondary);
+  background: rgba(196,148,98,0.06);
 }
-/* 選択中は左にドット付きボーダーで色以外のシグナル追加 */
+.tab.active {
+  background: transparent;
+  color: var(--dust-primary);
+  border-color: var(--mars-dust);
+  box-shadow: none;
+  font-weight: 700;
+}
+.tab.active::after { display: none; } /* アンダーバーインジケータ排除 */
+.tab.tab-appendix { border-style: solid; border-color: transparent; }
+.tab.tab-appendix:hover { border-color: var(--mars-dust); }
+.tab.tab-appendix.active { border-color: var(--mars-dust); }
+.tab-group-label { font-size: 9px; opacity: 0.5; }
+.tab:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: -2px;
+}
+
+/* ─── BUTTONS: フラット、境界明確 ─── */
+.btn {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--mars-dust);
+  transition: var(--transition);
+  min-height: 36px;
+  background: transparent;
+}
+.btn:hover {
+  background: rgba(196,148,98,0.08);
+  border-color: var(--mars-rim);
+}
+.btn:active {
+  background: rgba(196,148,98,0.12);
+  transform: none;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--mars-red);
+  outline-offset: -2px;
+}
+.btn-primary {
+  background: var(--mars-red);
+  border-color: var(--mars-red);
+  box-shadow: none;
+}
+.btn-primary:hover { box-shadow: none; opacity: 0.9; }
+.btn-primary:active { box-shadow: none; opacity: 0.8; }
+
+/* ─── STATUS BUTTONS ─── */
+.status-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: var(--radius-xs);
+  min-height: 32px;
+  transition: var(--transition);
+  border: 1px solid transparent;
+}
+.status-btn:hover { background: rgba(255,255,255,0.06); }
 .status-btn.selected-full,
 .status-btn.selected-partial,
 .status-btn.selected-minimal,
 .status-btn.selected-none,
 .status-btn.selected-na,
 .status-btn.selected-tested {
-  border-width: 2px;
-  border-style: solid;
   font-weight: 700;
-  transform: translateY(-1px);
-  box-shadow: var(--neu-shadow-btn-press), 0 2px 8px rgba(0,0,0,0.15);
+  border-style: solid;
+  border-width: 1px;
 }
 
-/* ─── 4. EXPORT BAR — 優先度の視覚的階層化 ─── */
+/* ─── EXPORT BAR ─── */
 .export-bar {
   gap: 6px;
   flex-wrap: wrap;
-  padding: 10px 0;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--mars-dust);
-  padding-bottom: 16px;
-}
-/* プライマリアクション（プリセット・レポート）を大きく */
-.export-bar .btn:first-child,
-.export-bar .btn:nth-child(3) {
-  flex: 0 0 auto;
-}
-/* セカンダリアクション（CSV/JSON等）をやや控えめに */
-.export-bar .btn:nth-child(n+4) {
-  font-size: 12px;
-  padding: 8px 14px;
-  opacity: 0.85;
-}
-.export-bar .btn:nth-child(n+4):hover {
-  opacity: 1;
 }
 
-/* ─── 5. KPI CARDS — 読取速度の最適化 ─── */
-.kpi-card {
-  border-radius: 14px;
-  padding: 18px 20px;
-  transition: all 0.25s ease;
-}
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-.kpi-num {
-  font-size: 36px;
-  font-weight: 900;
-  letter-spacing: -1.5px;
-  line-height: 1.1;
-}
-.kpi-label {
-  font-size: 11px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.kpi-sub {
-  font-size: 12px;
-  line-height: 1.4;
-}
-.kpi-badge {
-  font-size: 11px;
-  padding: 3px 9px;
-}
-
-/* ─── 6. SCORE CARDS — リングの呼吸感 ─── */
+/* ─── SCORE CARDS ─── */
 .score-card {
-  border-radius: 16px;
-  padding: 20px 18px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  box-shadow: none;
+  border: var(--card-border);
+  transition: var(--transition);
 }
 .score-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  border-color: var(--mars-rim);
+  transform: none;
+  box-shadow: none;
 }
-/* ring-container / svg.ring / ring-text はSVG viewBox=70px基準のため変更しない */
+.score-card .label { font-size: 12px; font-weight: 600; }
+.score-card .ring-container {
+  box-shadow: none;
+  background: transparent;
+}
+.score-card .ring-bg { stroke: rgba(74,46,30,0.2); }
+.score-card .score-sub { font-size: 11px; }
 
-/* ─── 7. PHASE SECTIONS — アコーディオンの操作性 ─── */
+/* ─── KPI CARDS ─── */
+.kpi-card {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: none;
+  border: var(--card-border);
+  transition: var(--transition);
+}
+.kpi-card::before { height: 2px; } /* アクセントライン薄く */
+.kpi-card:hover {
+  border-color: var(--mars-rim);
+  transform: none;
+  box-shadow: none;
+}
+.kpi-num { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+.kpi-label { font-size: 10px; font-weight: 600; }
+.kpi-sub { font-size: 11px; }
+.kpi-badge { font-size: 10px; padding: 2px 6px; }
+
+/* ─── VIZ PANELS ─── */
+.viz-panel {
+  border-radius: var(--radius);
+  box-shadow: none;
+  border: var(--card-border);
+  transition: var(--transition);
+}
+.viz-panel:hover { border-color: var(--mars-rim); }
+.viz-panel-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.mini-bar-label { font-size: 10px; min-width: 110px; }
+.mini-bar-track { height: 6px; border-radius: 3px; }
+.mini-bar-val { font-size: 10px; }
+
+/* ─── PHASE SECTIONS ─── */
 .phase-section {
-  border-radius: 14px;
-  margin-bottom: 14px;
-  transition: all 0.3s ease;
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  box-shadow: none;
+  border: var(--card-border);
 }
 .phase-header {
-  padding: 18px 24px;
-  min-height: 60px;
+  padding: 14px 18px;
+  min-height: 48px;
 }
-.phase-header:hover {
-  background: var(--mars-rock-hi) !important;
-}
-.phase-header h2 {
-  font-size: 16px;
-  font-weight: 700;
-}
+.phase-header:hover { background: rgba(196,148,98,0.04) !important; }
+.phase-header h2 { font-size: 14px; font-weight: 700; }
 .phase-dot {
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255,255,255,0.15);
+  width: 8px; height: 8px;
+  border: none;
 }
-.phase-score {
-  font-size: 22px;
-}
+.phase-score { font-size: 18px; }
 .phase-bar-container {
-  width: 140px;
-  height: 10px;
-  border-radius: 5px;
+  width: 120px; height: 6px;
+  border-radius: 3px;
+  box-shadow: none;
 }
-.phase-bar {
-  border-radius: 5px;
-}
-/* シェブロンの回転アニメーション滑らか化 */
-.chevron {
-  font-size: 18px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+.chevron { font-size: 14px; transition: transform 0.15s ease; }
 
-/* ─── 8. TECHNIQUE CARDS — 情報密度の最適化 ─── */
+/* ─── TECHNIQUE CARDS ─── */
 .technique-grid {
-  gap: 14px;
-  padding: 18px 24px;
+  gap: 10px;
+  padding: 14px 18px;
 }
 .technique-card {
-  border-radius: 12px;
-  padding: 16px 18px;
-  border: 1px solid transparent;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  border: var(--card-border);
+  box-shadow: none;
+  transition: var(--transition);
 }
 .technique-card:hover {
   border-color: var(--mars-rim);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  background: var(--mars-rock-hi);
+  transform: none;
+  box-shadow: none;
 }
+.technique-id { font-size: 11px; }
+.technique-name { font-size: 13px; font-weight: 600; }
+.technique-tactic { font-size: 10px; }
+.technique-risk { font-size: 10px; padding: 2px 8px; border-radius: var(--radius-xs); }
 
-/* ─── 9. MODAL — キーボード操作・フォーカス視認性 ─── */
-/* モーダルのオーバーレイにアニメーション */
-div[style*="position:fixed"][style*="rgba(0,0,0,0.7)"] {
-  animation: modal-overlay-in 0.2s ease;
-}
-@keyframes modal-overlay-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-/* モーダルコンテンツにスケールイン */
-div[style*="position:fixed"][style*="rgba(0,0,0,0.7)"] > div {
-  animation: modal-content-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes modal-content-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
+/* ─── BADGES: 最小限のサイズ ─── */
+.xai-badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; }
+.lifecycle-badge, .nist-badge { font-size: 9px; padding: 1px 5px; }
 
-/* ─── 10. VIZ PANELS & CHARTS ─── */
-.viz-panel {
-  border-radius: 14px;
-  transition: all 0.25s ease;
-}
-.viz-panel:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-.viz-panel-title {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-}
-.mini-bar-row {
-  margin-bottom: 9px;
-}
-.mini-bar-label {
-  font-size: 11px;
-  min-width: 120px;
-}
-.mini-bar-track {
-  height: 9px;
-  border-radius: 5px;
-}
-.mini-bar-val {
-  font-size: 11px;
-}
+/* ─── RT FLAG ─── */
+.rt-flag { font-size: 10px; padding: 3px 8px; border-radius: var(--radius-xs); }
 
-/* ─── 11. SUMMARY TABLE — 行の可読性 ─── */
-.summary-table th {
-  font-size: 12px;
-  font-weight: 700;
+/* ─── SUMMARY TABLE ─── */
+.summary-section {
+  border-radius: var(--radius);
+  box-shadow: none;
+  border: var(--card-border);
+}
+.summary-header {
   padding: 12px 18px;
+  background: rgba(0,0,0,0.1);
+}
+.summary-header h3 { font-size: 13px; }
+.summary-table th {
+  font-size: 11px; font-weight: 600;
+  padding: 10px 14px;
 }
 .summary-table td {
-  font-size: 13px;
-  padding: 12px 18px;
+  font-size: 12px;
+  padding: 10px 14px;
   line-height: 1.5;
 }
-.summary-table tr:hover td {
-  background: rgba(42, 28, 20, 0.6);
-  transition: background 0.15s;
-}
+.summary-table tr:hover td { background: rgba(42,28,20,0.3); }
 
-/* ─── 12. RMF CARDS ─── */
-.nist-rmf-grid {
-  gap: 18px;
-}
+/* ─── RMF CARDS ─── */
+.nist-rmf-grid { gap: 14px; }
 .rmf-card {
-  border-radius: 14px;
+  border-radius: var(--radius);
+  box-shadow: none;
+  border: var(--card-border);
 }
-.rmf-header {
-  padding: 16px 20px;
-}
-.rmf-header h3 {
-  font-size: 15px;
-}
-.rmf-body {
-  padding: 16px 20px;
-}
-.rmf-id {
-  font-size: 11px;
-  min-width: 80px;
-}
-.rmf-fn {
-  font-size: 13px;
-  line-height: 1.5;
-}
+.rmf-header { padding: 12px 16px; background: rgba(0,0,0,0.1); }
+.rmf-header h3 { font-size: 13px; }
+.rmf-body { padding: 12px 16px; }
+.rmf-id { font-size: 10px; }
+.rmf-fn { font-size: 12px; line-height: 1.5; }
 .rmf-btn {
-  padding: 3px 9px;
-  font-size: 10px;
-  min-height: 28px;
+  padding: 2px 6px; font-size: 9px;
+  min-height: 24px;
   border: 1px solid transparent;
 }
 
-/* ─── 13. CUSTOMER BAR ─── */
-.customer-bar {
-  border-radius: 14px;
-  padding: 16px 22px;
-  gap: 14px;
-}
-.customer-bar label {
-  font-size: 13px;
-  font-weight: 600;
-}
-.customer-bar input {
-  padding: 10px 16px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid var(--mars-dust);
-  min-height: 44px; /* タッチターゲット */
-}
-
-/* ─── 14. HEADER ─── */
-.header {
-  border-radius: 16px;
-  padding: 22px 30px;
-}
-.header-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-}
-.header h1 {
-  font-size: 20px;
-}
-.header .subtitle {
-  font-size: 12px;
-  margin-top: 5px;
-  letter-spacing: 0.4px;
-}
-
-/* ─── 15. LEGEND ─── */
+/* ─── LEGEND ─── */
 .legend {
-  border-radius: 12px;
-  padding: 14px 22px;
-  gap: 18px;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  gap: 14px;
+  border: var(--card-border);
 }
-.legend-item {
-  font-size: 13px;
-}
-.legend-dot {
-  width: 12px;
-  height: 12px;
-}
+.legend-item { font-size: 11px; }
+.legend-dot { width: 8px; height: 8px; }
 
-/* ─── 16. ANNOTATION PANEL ─── */
+/* ─── ANNOTATION ─── */
 .tech-annotation-btn {
-  font-size: 12px;
-  padding: 5px 12px;
-  border-radius: 6px;
-  min-height: 32px;
+  font-size: 11px; padding: 4px 10px;
+  border-radius: var(--radius-xs);
 }
-.tech-annotation-text {
-  font-size: 13px;
-  line-height: 1.7;
-}
-.tech-annotation-label {
-  font-size: 11px;
-  font-weight: 700;
+.tech-annotation-text { font-size: 12px; line-height: 1.6; }
+.tech-annotation-label { font-size: 10px; font-weight: 600; }
+.tech-annotation-panel {
+  border-radius: var(--radius-sm);
+  border: var(--card-border);
 }
 
-/* ─── 17. SCROLLBAR — 太く取りやすく ─── */
-::-webkit-scrollbar { width: 10px; }
+/* ─── SCROLLBAR: 細く、主張しない ─── */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 5px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+  background: rgba(196,148,98,0.2);
+  border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-  background-clip: content-box;
-}
+::-webkit-scrollbar-thumb:hover { background: rgba(196,148,98,0.35); }
 
-/* ─── 18. RT FLAG ─── */
-.rt-flag {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  min-height: 30px;
+/* ─── SELECT ─── */
+select {
+  box-shadow: none !important;
+  border: 1px solid var(--mars-dust) !important;
+  border-radius: var(--radius-xs) !important;
 }
 
-/* ═══════════════════════════════════════════
-   19. RESPONSIVE — タブレット・モバイル対応
-   ═══════════════════════════════════════════ */
+/* ─── LIGHT THEME 上書き: ニューモーフィズム排除 ─── */
+html.light .header { box-shadow: none; border: 1px solid rgba(180,130,75,0.25); border-top: 2px solid var(--mars-red); }
+html.light .score-card,
+html.light .phase-section,
+html.light .kpi-card,
+html.light .viz-panel,
+html.light .rmf-card,
+html.light .customer-bar {
+  box-shadow: none;
+  border: 1px solid rgba(180,130,75,0.2);
+}
+html.light .tabs {
+  background: var(--mars-black);
+  border: 1px solid rgba(180,130,75,0.2);
+}
+html.light .btn {
+  border: 1px solid rgba(180,130,75,0.25);
+}
+html.light select { box-shadow: none !important; }
 
-/* タブレット（768px〜1024px） */
+/* ═══ RESPONSIVE ═══ */
+
 @media (max-width: 1024px) {
   .app { padding: 16px; }
-  .header { padding: 18px 22px; }
-  .header h1 { font-size: 17px; }
-  
-  /* ダッシュボードスコアカードを2列に */
-  .dashboard {
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 10px;
-  }
-  
-  /* タブを折り返し可能に */
-  .tabs {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .tab {
-    flex: 1 1 auto;
-    min-width: 120px;
-    font-size: 11px;
-    padding: 10px 10px;
-  }
-  .tab-group-label {
-    display: none;
-  }
-  .tab-separator {
-    display: none;
-  }
-  
-  /* エクスポートバーを折り返し */
-  .export-bar {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 8px;
-  }
-  
-  /* テクニックグリッドを1列に */
-  .technique-grid {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* RMFグリッドを1列に */
-  .nist-rmf-grid {
-    grid-template-columns: 1fr;
-  }
+  .tabs { flex-wrap: wrap; gap: 3px; }
+  .tab { flex: 1 1 auto; min-width: 100px; font-size: 10px; }
+  .tab-group-label, .tab-separator { display: none; }
+  .technique-grid { grid-template-columns: 1fr !important; }
+  .nist-rmf-grid { grid-template-columns: 1fr; }
+  .export-bar { flex-wrap: wrap; }
 }
 
-/* モバイル（〜768px） */
 @media (max-width: 768px) {
-  .app { padding: 12px; }
-  
+  .app { padding: 10px; }
   .header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
-    padding: 16px 18px;
-  }
-  .header h1 { font-size: 16px; }
-  .header .subtitle { font-size: 10px; }
-  
-  .customer-bar {
-    flex-direction: column;
     gap: 10px;
     padding: 14px 16px;
   }
-  .customer-bar input {
-    width: 100% !important;
-  }
-  
-  .dashboard {
-    grid-template-columns: repeat(2, 1fr) !important;
+  .header h1 { font-size: 15px; }
+  .customer-bar {
+    flex-direction: column;
     gap: 8px;
+    padding: 12px 14px;
   }
-  
-  /* KPIカードを2列 */
-  
-  /* タブを横スクロール */
+  .customer-bar input { width: 100% !important; }
+  .dashboard { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .chart-2col { grid-template-columns: 1fr !important; }
   .tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    position: sticky;
-    top: 0;
-    z-index: 100;
   }
-  .tabs::-webkit-scrollbar {
-    display: none;
-  }
-  .tab {
-    flex: 0 0 auto;
-    min-width: fit-content;
-    white-space: nowrap;
-    font-size: 11px;
-  }
-  
-  /* エクスポートバー */
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; white-space: nowrap; }
   .export-bar {
     flex-direction: column;
     align-items: stretch;
   }
-  .export-bar .btn {
-    justify-content: center;
-    width: 100%;
-  }
-  
-  /* フェーズヘッダー調整 */
-  .phase-header {
-    padding: 14px 16px;
-  }
-  .phase-bar-container {
-    width: 80px;
-  }
-  
-  /* テクニックグリッド */
-  .technique-grid {
-    grid-template-columns: 1fr !important;
-    padding: 12px 14px;
-  }
-  
-  /* レジェンドを折り返し */
-  .legend {
-    padding: 12px 14px;
-    gap: 12px;
-  }
+  .export-bar .btn { justify-content: center; width: 100%; }
+  .phase-bar-container { width: 80px; }
+  .technique-grid { padding: 10px 12px; }
 }
 
-/* 小型モバイル（〜480px） */
 @media (max-width: 480px) {
-  .app { padding: 8px; }
-  
-  .dashboard {
-    grid-template-columns: 1fr 1fr !important;
-  }
-  
-  .kpi-num {
-    font-size: 28px;
-  }
-  
-  .header h1 {
-    font-size: 14px;
-  }
-  
-  .phase-header-right {
-    gap: 8px;
-  }
-  .phase-score {
-    font-size: 18px;
-  }
-  .phase-bar-container {
-    width: 60px;
-    display: none; /* 超小画面ではバーを非表示 */
-  }
-  
-  /* ステータスボタン横並びの折り返し */
-  .status-selector {
-    gap: 3px;
-  }
-  .status-btn {
-    font-size: 10px;
-    padding: 4px 7px;
-    min-height: 32px;
-  }
-  
-  .meta-badges {
-    gap: 3px;
-  }
+  .app { padding: 6px; }
+  .dashboard { grid-template-columns: 1fr 1fr !important; }
+  .kpi-num { font-size: 22px; }
+  .header h1 { font-size: 13px; }
+  .phase-bar-container { display: none; }
+  .phase-score { font-size: 16px; }
+  .status-btn { font-size: 10px; padding: 3px 6px; }
 }
 
-/* ─── 20. PREFERS-REDUCED-MOTION ─── */
+/* ─── REDUCED MOTION ─── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
-  body::after {
-    animation: none !important;
-  }
+  body::after { animation: none !important; }
 }
 
-/* ─── 21. FOCUS MANAGEMENT — キーボードユーザー ─── */
-*:focus-visible {
-  outline: 2px solid var(--mars-red);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-/* マウスクリック時はフォーカスリングを非表示 */
-*:focus:not(:focus-visible) {
-  outline: none;
-}
+/* ─── FOCUS ─── */
+*:focus-visible { outline: 2px solid var(--mars-red); outline-offset: -2px; }
+*:focus:not(:focus-visible) { outline: none; }
 
-/* ─── 22. SMOOTH SCROLL ─── */
-html {
-  scroll-behavior: smooth;
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
-/* ─── 23. SELECTION COLORS ─── */
-::selection {
-  background: rgba(232, 67, 26, 0.3);
-  color: var(--dust-primary);
-}
+::selection { background: rgba(232,67,26,0.25); color: var(--dust-primary); }
 
-/* ─── 24. CONTEXT BANNER ─── */
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  /* バナー内を縦積みに */
-  div[style*="flex:'1 1 320px'"] {
-    min-width: 100% !important;
-  }
-}
-
-/* ═══ PRINT STYLES ═══ */
+/* ═══ PRINT ═══ */
 @media print{
   body::before,body::after{display:none!important;}
   .app>.header,.app>.customer-bar,.app>.tabs,.app>.export-bar,
@@ -1735,6 +1252,7 @@ html {
   }
   .summary-table th,.summary-table td{border:1px solid #999!important;color:#000!important;}
 }
+
 </style>
 </head>
 <body>
