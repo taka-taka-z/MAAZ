@@ -2310,6 +2310,28 @@ const RMF_OUT_OF_SCOPE=[
 ];
 
 const RMF_FN_COLORS={GOVERN:"var(--accent-primary)",MAP:"var(--accent-cyan)",MEASURE:"var(--accent-yellow)",MANAGE:"var(--accent-green)"};
+// ===== ZTMM SOLUTION MAP (ゼロトラスト実装×成熟度 技術マップ) =====
+const ZTMM_SOLUTIONS={
+"ID-01":{1:["IDaaS"],2:["EIAM"],3:[],4:["ISPM"]},
+"ID-02":{1:[],2:["IGA","PAM"],3:["NHI"],4:["NHI Gov."]},
+"ID-03":{1:["Sec Awareness"],2:[],3:["UEBA"],4:["ITDR"]},
+"DE-01":{1:["UEM"],2:[],3:[],4:["CAASM"]},
+"DE-02":{1:[],2:["EDR"],3:["DEM"],4:["MTD"]},
+"DE-03":{1:["EPP"],2:["Ent. Browser"],3:[],4:["Deception"]},
+"NW-01":{1:[],2:["FWaaS"],3:["ZT(N)A"],4:["Microseg"]},
+"NW-02":{1:[],2:["SWG","DNS"],3:["CASB","SD-WAN"],4:[]},
+"NW-03":{1:["FW/IPS","WAF"],2:[],3:["DLP"],4:["NDR"]},
+"AP-01":{1:[],2:["WAAP"],3:["WAF-API","ZT(N)A"],4:[]},
+"AP-02":{1:[],2:["Sandbox"],3:["RBI"],4:["CWPP","RASP"]},
+"AP-03":{1:[],2:[],3:["CSPM","CIEM"],4:["ASPM","KSPM"]},
+"DA-01":{1:[],2:["Data Classif."],3:["DSPM"],4:["SCA"]},
+"DA-02":{1:["Encryption"],2:[],3:["DLP"],4:["Tokenization"]},
+"DA-03":{1:["Backup"],2:[],3:["CDR"],4:["DDR","ADR"]},
+"CC-01":{1:[],2:["SIEM"],3:["XDR","EASM"],4:["TI"]},
+"CC-02":{1:[],2:[],3:["SOAR"],4:["AI SOC"]},
+"CC-03":{1:[],2:[],3:["TPRM","SSPM"],4:["AI Gov."]},
+};
+
 const PILLAR_COLORS={Identity:"#3b82f6",Devices:"#8b5cf6","Networks":"#06b6d4","App & Workload":"#f59e0b",Data:"#10b981","Cross-Cutting":"#ec4899"};
 const PILLAR_ICONS={Identity:"🔐",Devices:"💻",Networks:"🌐","App & Workload":"⚡",Data:"📦","Cross-Cutting":"🔄"};
 
@@ -2979,7 +3001,7 @@ function App(){
         <button className="btn" onClick={saveSnapshot} style={{borderColor:'var(--accent-purple)',color:'var(--accent-purple)'}}>💾 スナップショット保存</button>
         <button className="btn" onClick={()=>setShowReport(true)} style={{borderColor:'var(--plasma-cyan)',color:'var(--plasma-cyan)'}}>📊 エグゼクティブレポート</button>
         <button className="btn" onClick={exportCSV}>📥 CSV出力</button>
-        <button className="btn" onClick={exportJSON} style={{borderColor:'var(--accent-green)',color:'var(--accent-green)'}}>📤 JSON出力（Decision連携用）</button>
+        <button className="btn" onClick={exportJSON} style={{borderColor:'var(--accent-green)',color:'var(--accent-green)'}}>📤 JSON出力（Endeavor連携用）</button>
         <button className="btn" onClick={importJSON} style={{borderColor:'var(--mars-orange)',color:'var(--mars-orange)'}}>📂 JSONインポート</button>
       </div>
 
@@ -3337,6 +3359,30 @@ function App(){
                               </div>
                             </div>
                           )}
+                          {/* Solution tags */}
+                          {(()=>{
+                            const sols=ZTMM_SOLUTIONS[z.id];
+                            if(!sols)return null;
+                            const curSols=[];const tgtSols=[];
+                            for(let lv=1;lv<=ztCur[z.id];lv++){if(sols[lv])sols[lv].forEach(s=>{if(s&&!curSols.includes(s))curSols.push(s);});}
+                            for(let lv=ztCur[z.id]+1;lv<=ztTgt[z.id];lv++){if(sols[lv])sols[lv].forEach(s=>{if(s&&!tgtSols.includes(s)&&!curSols.includes(s))tgtSols.push(s);});}
+                            if(curSols.length===0&&tgtSols.length===0)return null;
+                            return(
+                              <div style={{marginLeft:52,display:'flex',flexWrap:'wrap',gap:4,alignItems:'center',marginTop:4}}>
+                                <span style={{fontSize:9,color:'var(--dust-muted)',fontWeight:600}}>技術:</span>
+                                {curSols.map((s,i)=>(
+                                  <span key={'c'+i} style={{fontSize:9,padding:'2px 6px',borderRadius:3,
+                                    background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.2)',
+                                    color:'var(--accent-green)'}}>{s}</span>
+                                ))}
+                                {tgtSols.map((s,i)=>(
+                                  <span key={'t'+i} style={{fontSize:9,padding:'2px 6px',borderRadius:3,
+                                    background:'rgba(249,115,22,0.06)',border:'1px solid rgba(249,115,22,0.2)',
+                                    color:'var(--accent-orange)',fontWeight:600}}>{s} ★</span>
+                                ))}
+                              </div>
+                            );
+                          })()}
                         </div>
                       );
                     })}
@@ -3804,6 +3850,26 @@ function App(){
                         <div style={{fontSize:10,color:'var(--accent-cyan)',fontWeight:600,marginBottom:2}}>目標状態 (Lv{item.toLv})</div>
                         <div style={{fontSize:11,color:'var(--text-primary)',lineHeight:1.5}}>{item.targetDesc}</div>
                       </div>
+                      {/* Solution tags from ZTMM_SOLUTIONS */}
+                      {(()=>{
+                        const sols=ZTMM_SOLUTIONS[item.ztmmId];
+                        if(!sols)return null;
+                        const allSols=[];
+                        for(let lv=item.fromLv+1;lv<=item.toLv;lv++){
+                          if(sols[lv])sols[lv].forEach(s=>{if(s&&!allSols.includes(s))allSols.push(s);});
+                        }
+                        if(allSols.length===0)return null;
+                        return(
+                          <div style={{marginBottom:8,display:'flex',flexWrap:'wrap',gap:4,alignItems:'center'}}>
+                            <span style={{fontSize:9,color:'var(--dust-muted)',fontWeight:600,marginRight:2}}>実装技術:</span>
+                            {allSols.map((s,i)=>(
+                              <span key={i} style={{fontSize:10,padding:'2px 8px',borderRadius:4,
+                                background:'rgba(249,115,22,0.08)',border:'1px solid rgba(249,115,22,0.2)',
+                                color:'var(--accent-orange)',fontWeight:600}}>{s}</span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                       {item.ztActions&&item.ztActions.length>0&&(
                         <div style={{padding:'6px 10px',background:'rgba(249,115,22,0.04)',borderRadius:5,marginBottom:8,borderLeft:'2px solid var(--accent-orange)'}}>
                           <div style={{fontSize:10,color:'var(--accent-orange)',fontWeight:600,marginBottom:3}}>実装アクション</div>
