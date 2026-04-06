@@ -2347,7 +2347,7 @@ const VIEW_META={
   'governance':{icon:'🔷',title:'ガバナンス（AI RMF）',desc:'NIST AI RMF 1.0の17サブカテゴリへの準拠状況を評価し、ZTMMコントロールとの対応関係を確認します。',step:'補足',flow:'AI統制'},
 };
 
-function ContextBanner({activeView,threatCoverage,ztmmOverall,actionItems,mitigatedByAsIs,mitigatedByZtmm}){
+function ContextBanner({activeView,threatCoverage,ztmmOverall,actionItems,mitigatedByAsIs,mitigatedByZtmm,filteredTechniques}){
   const meta=VIEW_META[activeView];
   if(!meta)return null;
   const covPct=threatCoverage.total>0?Math.round((threatCoverage.coveredToBe/threatCoverage.total)*100):0;
@@ -2356,7 +2356,7 @@ function ContextBanner({activeView,threatCoverage,ztmmOverall,actionItems,mitiga
 
   // Phase-level breakdown
   const phaseBreakdown=Object.entries(PHASES).map(([key,ph])=>{
-    const techs=TECHNIQUES.filter(t=>t.phase===key);
+    const techs=(filteredTechniques||TECHNIQUES).filter(t=>t.phase===key);
     const total=techs.length;
     const asis=mitigatedByAsIs?techs.filter(t=>mitigatedByAsIs.has(t.id)).length:0;
     const tobe=mitigatedByZtmm?techs.filter(t=>mitigatedByZtmm.has(t.id)).length:0;
@@ -2621,12 +2621,22 @@ function App(){
   const showToast=useCallback((msg)=>{setToastMsg(msg);setTimeout(()=>setToastMsg(null),2500);},[]);
   const [showReport,setShowReport]=useState(false);
   const [showAispm,setShowAispm]=useState(false);
+  const [selectedFrameworks,setSelectedFrameworks]=useState({mitre_attack:true,mitre_atlas:true,nist_ai_rmf:true});
+  const toggleFramework=useCallback((key)=>{
+    setSelectedFrameworks(prev=>{
+      const next={...prev,[key]:!prev[key]};
+      // Redirect if current view becomes unavailable
+      if(key==='nist_ai_rmf'&&!next.nist_ai_rmf) setActiveView(v=>v==='governance'?'zt-dashboard':v);
+      if((key==='mitre_attack'||key==='mitre_atlas')&&!next.mitre_attack&&!next.mitre_atlas) setActiveView(v=>(v==='threat-map'||v==='assess')?'zt-dashboard':v);
+      return next;
+    });
+  },[]);
   const [lightTheme,setLightTheme]=React.useState(()=>localStorage.getItem('maaz-theme')==='light');
   React.useEffect(()=>{document.documentElement.classList.toggle('light',lightTheme);localStorage.setItem('maaz-theme',lightTheme?'light':'dark');},[lightTheme]);
 
   const toggleRt=useCallback((id)=>{setRtFlags(prev=>({...prev,[id]:!prev[id]}));},[]);
   const saveSnapshot=useCallback(()=>{
-    const snap={date:new Date().toISOString(),customer:customerName,ztCur:{...ztCur},ztTgt:{...ztTgt},statuses:{...statuses},rtFlags:{...rtFlags},nistScores:{...nistScores},label:customerName||'スナップショット'};
+    const snap={date:new Date().toISOString(),customer:customerName,ztCur:{...ztCur},ztTgt:{...ztTgt},statuses:{...statuses},rtFlags:{...rtFlags},nistScores:{...nistScores},selectedFrameworks:{...selectedFrameworks},label:customerName||'スナップショット'};
     setSnapshots(prev=>{
       const updated=[...prev,snap].slice(-10);
       try{localStorage.setItem('maaz_snapshots',JSON.stringify(updated));}
@@ -2636,7 +2646,7 @@ function App(){
     });
   },[customerName,ztCur,ztTgt,statuses,rtFlags,nistScores,showToast]);
   const downloadSnapshot=useCallback(()=>{
-    const data={format:'maaz-snapshot-v4.1.1',exportDate:new Date().toISOString(),customer:customerName,date:assessmentDate,ztCur,ztTgt,statuses,rtFlags,nistScores,snapshots};
+    const data={format:'maaz-snapshot-v4.1.1',exportDate:new Date().toISOString(),customer:customerName,date:assessmentDate,ztCur,ztTgt,statuses,rtFlags,nistScores,selectedFrameworks,snapshots};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);const a=document.createElement('a');
     a.href=url;a.download=`MAAZ_Snapshot_${customerName||'unnamed'}_${assessmentDate}.json`;a.click();
@@ -2694,6 +2704,14 @@ function App(){
     if(prevView){setActiveView(prevView);setPrevView(null);}
   },[prevView]);
 
+  // ===== DERIVED: filtered TECHNIQUES by selected frameworks =====
+  const filteredTechniques=useMemo(()=>{
+    return TECHNIQUES.filter(t=>{
+      if(t.phase==='atlas') return selectedFrameworks.mitre_atlas;
+      return selectedFrameworks.mitre_attack;
+    });
+  },[selectedFrameworks]);
+
   // ===== DERIVED: ZTMM → Threat mapping =====
   // For each ZTMM control, compute which threats it addresses at each level
   const ztmmThreatMap=useMemo(()=>{
@@ -2702,40 +2720,43 @@ function App(){
     ZTMM_MITRE_MAP.forEach(m=>{
       if(map[m.ztmm]&&map[m.ztmm][m.lv]){
         m.techs.forEach(tid=>{
-          const tech=TECHNIQUES.find(t=>t.id===tid);
+          const tech=filteredTechniques.find(t=>t.id===tid);
           if(tech)map[m.ztmm][m.lv].push(tech);
         });
       }
     });
     return map;
-  },[]);
+  },[filteredTechniques]);
 
   // Which threats are mitigated by current TO-BE settings
   const mitigatedByZtmm=useMemo(()=>{
+    const ftIds=new Set(filteredTechniques.map(t=>t.id));
     const set=new Set();
-    ZTMM_MITRE_MAP.forEach(m=>{if(ztTgt[m.ztmm]>=m.lv){m.techs.forEach(tid=>set.add(tid));}});
+    ZTMM_MITRE_MAP.forEach(m=>{if(ztTgt[m.ztmm]>=m.lv){m.techs.forEach(tid=>{if(ftIds.has(tid))set.add(tid);});}});
     return set;
-  },[ztTgt]);
+  },[ztTgt,filteredTechniques]);
 
   // Which threats are mitigated by current AS-IS settings
   const mitigatedByAsIs=useMemo(()=>{
+    const ftIds=new Set(filteredTechniques.map(t=>t.id));
     const set=new Set();
-    ZTMM_MITRE_MAP.forEach(m=>{if(ztCur[m.ztmm]>=m.lv){m.techs.forEach(tid=>set.add(tid));}});
+    ZTMM_MITRE_MAP.forEach(m=>{if(ztCur[m.ztmm]>=m.lv){m.techs.forEach(tid=>{if(ftIds.has(tid))set.add(tid);});}});
     return set;
-  },[ztCur]);
+  },[ztCur,filteredTechniques]);
 
   // Threat coverage stats
   const threatCoverage=useMemo(()=>{
-    const total=TECHNIQUES.length;
-    const coveredAsIs=TECHNIQUES.filter(t=>mitigatedByAsIs.has(t.id)).length;
-    const coveredToBe=TECHNIQUES.filter(t=>mitigatedByZtmm.has(t.id)).length;
+    const total=filteredTechniques.length;
+    const coveredAsIs=filteredTechniques.filter(t=>mitigatedByAsIs.has(t.id)).length;
+    const coveredToBe=filteredTechniques.filter(t=>mitigatedByZtmm.has(t.id)).length;
     const newlyMitigated=coveredToBe-coveredAsIs;
     const remaining=total-coveredToBe;
     return{total,coveredAsIs,coveredToBe,newlyMitigated,remaining};
-  },[mitigatedByAsIs,mitigatedByZtmm]);
+  },[mitigatedByAsIs,mitigatedByZtmm,filteredTechniques]);
 
   // ZTMM Pillar scores
   const pillarScores=useMemo(()=>{
+    const ftIds=new Set(filteredTechniques.map(t=>t.id));
     const scores={};
     const pillars=[...new Set(ZTMM_DATA.map(z=>z.pillar))];
     pillars.forEach(p=>{
@@ -2748,14 +2769,14 @@ function App(){
       const threatsAtAsIs=new Set();
       ZTMM_MITRE_MAP.forEach(m=>{
         if(pillarIds.includes(m.ztmm)){
-          if(ztTgt[m.ztmm]>=m.lv) m.techs.forEach(t=>threatsAtToBe.add(t));
-          if(ztCur[m.ztmm]>=m.lv) m.techs.forEach(t=>threatsAtAsIs.add(t));
+          if(ztTgt[m.ztmm]>=m.lv) m.techs.forEach(t=>{if(ftIds.has(t))threatsAtToBe.add(t);});
+          if(ztCur[m.ztmm]>=m.lv) m.techs.forEach(t=>{if(ftIds.has(t))threatsAtAsIs.add(t);});
         }
       });
       scores[p]={curAvg,tgtAvg,gap:tgtAvg-curAvg,threatsAtToBe:threatsAtToBe.size,threatsAtAsIs:threatsAtAsIs.size,newThreats:threatsAtToBe.size-threatsAtAsIs.size};
     });
     return scores;
-  },[ztCur,ztTgt]);
+  },[ztCur,ztTgt,filteredTechniques]);
 
   // ===== ACTION ITEMS: auto-derived from ZTMM gaps =====
   const actionItems=useMemo(()=>{
@@ -2770,12 +2791,12 @@ function App(){
         const mapEntries=ZTMM_MITRE_MAP.filter(m=>m.ztmm===z.id&&m.lv===lv);
         const threats=[];
         mapEntries.forEach(m=>{m.techs.forEach(tid=>{
-          const tech=TECHNIQUES.find(t=>t.id===tid);
+          const tech=filteredTechniques.find(t=>t.id===tid);
           if(tech&&!threats.find(t=>t.id===tid))threats.push(tech);
         });});
 
-        // Related NIST RMF
-        const relatedNist=NIST_RMF_DATA.filter(n=>n.ztmmLink&&n.ztmmLink.includes(z.id));
+        // Related NIST RMF (only when NIST AI RMF is selected)
+        const relatedNist=selectedFrameworks.nist_ai_rmf?NIST_RMF_DATA.filter(n=>n.ztmmLink&&n.ztmmLink.includes(z.id)):[];
 
         // Priority based on threat risk levels
         const hasCritical=threats.some(t=>t.risk==='critical');
@@ -2819,14 +2840,14 @@ function App(){
     items._uniqueThreatTotal=allThreatIds.size;
 
     return items;
-  },[ztCur,ztTgt]);
+  },[ztCur,ztTgt,filteredTechniques,selectedFrameworks]);
 
   // Phase-based scores (for compatibility)
   const scores=useMemo(()=>{
     const result={overall:0};
     const pt={};
     Object.keys(PHASES).forEach(p=>{pt[p]={total:0,count:0};});
-    TECHNIQUES.forEach(t=>{
+    filteredTechniques.forEach(t=>{
       const s=statuses[t.id];
       if(!s||s==='na')return;
       const opt=STATUS_OPTIONS.find(o=>o.key===s);
@@ -2839,7 +2860,7 @@ function App(){
     });
     result.overall=cnt>0?tot/cnt:0;
     return result;
-  },[statuses]);
+  },[statuses,filteredTechniques]);
 
   // NIST RMF scores
   const nistRmfScore=useMemo(()=>{
@@ -2855,12 +2876,13 @@ function App(){
   },[nistScores]);
 
   const stats=useMemo(()=>{
-    const assessed=Object.values(statuses).filter(s=>s&&s!=='na').length;
+    const ftIds=new Set(filteredTechniques.map(t=>t.id));
+    const assessed=Object.entries(statuses).filter(([id,s])=>ftIds.has(id)&&s&&s!=='na').length;
     const byStat={};STATUS_OPTIONS.forEach(o=>{byStat[o.key]=0;});
-    Object.values(statuses).forEach(s=>{if(s)byStat[s]++;});
-    const rtCount=Object.values(rtFlags).filter(Boolean).length;
-    return{assessed,total:TECHNIQUES.length,byStat,rtCount};
-  },[statuses,rtFlags]);
+    Object.entries(statuses).forEach(([id,s])=>{if(ftIds.has(id)&&s)byStat[s]++;});
+    const rtCount=Object.entries(rtFlags).filter(([id,v])=>ftIds.has(id)&&v).length;
+    return{assessed,total:filteredTechniques.length,byStat,rtCount};
+  },[statuses,rtFlags,filteredTechniques]);
 
   const getScoreColor=(score)=>{
     if(score>=80)return'var(--status-full)';if(score>=50)return'var(--status-partial)';
@@ -2869,7 +2891,7 @@ function App(){
 
   const exportCSV=()=>{
     const header="ID,Technique,Phase,Risk,Status,Score,XAI_Level,RT_Tested,ZT_Action,NIST_Ref,OWASP\n";
-    const rows=TECHNIQUES.map(t=>{
+    const rows=filteredTechniques.map(t=>{
       const s=statuses[t.id]||'';const opt=STATUS_OPTIONS.find(o=>o.key===s);
       const sc=opt?(opt.score!==null?opt.score:'N/A'):'';
       return `${t.id},"${t.name}","${PHASES[t.phase].label}",${t.risk},${s||'未評価'},${sc},${t.xaiLevel||3},${rtFlags[t.id]?'✓':''},"${(t.ztAction||'').replace(/"/g,"'")}",${t.nistRef||''},${t.owasp||''}`;
@@ -2882,7 +2904,7 @@ function App(){
 
   const exportJSON=()=>{
     const data={format:"maaz-v4.1.1",customer:customerName,date:assessmentDate,
-      statuses,rtFlags,ztCur,ztTgt,nistScores};
+      statuses,rtFlags,ztCur,ztTgt,nistScores,selectedFrameworks};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);const a=document.createElement('a');
     a.href=url;a.download=`MAAZ_ZT_${customerName||'unnamed'}_${assessmentDate}.json`;a.click();
@@ -2906,6 +2928,7 @@ function App(){
           if(data.ztCur)setZtCur(data.ztCur);
           if(data.ztTgt)setZtTgt(data.ztTgt);
           if(data.nistScores)setNistScores(data.nistScores);
+          if(data.selectedFrameworks)setSelectedFrameworks(data.selectedFrameworks);
           alert('✅ JSONデータをインポートしました: '+(data.customer||'unnamed')+' ('+data.date+')');
         }catch(err){alert('⚠️ JSONの読み込みに失敗しました: '+err.message);}
       };
@@ -2962,6 +2985,34 @@ function App(){
         <input type="date" value={assessmentDate} onChange={e=>setAssessmentDate(e.target.value)} style={{flex:'none',width:'160px'}}/>
       </div>
 
+      {/* Framework Selection Bar */}
+      <div style={{display:'flex',alignItems:'center',gap:12,padding:'8px 14px',marginBottom:12,background:'linear-gradient(135deg,rgba(124,58,237,0.06),rgba(34,211,238,0.04))',border:'1px solid rgba(124,58,237,0.2)',borderRadius:8}}>
+        <span style={{fontSize:11,fontWeight:700,color:'var(--accent-purple)',whiteSpace:'nowrap'}}>🎯 対象フレームワーク選択</span>
+        <span style={{fontSize:9,color:'var(--dust-muted)',whiteSpace:'nowrap'}}>お客様に必要なフレームワークだけを有効にできます</span>
+        <div style={{display:'flex',gap:8,marginLeft:'auto',flexWrap:'wrap'}}>
+          {[
+            {key:'mitre_attack',label:'MITRE ATT&CK',desc:'従来型脅威（50技法）',icon:'⚔️',color:'var(--mars-red)',count:TECHNIQUES.filter(t=>t.phase!=='atlas').length},
+            {key:'mitre_atlas',label:'MITRE ATLAS',desc:'AI固有脅威（13技法）',icon:'🤖',color:'var(--phase-atlas)',count:TECHNIQUES.filter(t=>t.phase==='atlas').length},
+            {key:'nist_ai_rmf',label:'NIST AI RMF',desc:'AIガバナンス（17項目）',icon:'📋',color:'var(--accent-cyan)',count:NIST_RMF_DATA.length}
+          ].map(fw=>(
+            <button key={fw.key} onClick={()=>toggleFramework(fw.key)}
+              style={{display:'flex',alignItems:'center',gap:6,padding:'5px 12px',borderRadius:6,
+                border:`1px solid ${selectedFrameworks[fw.key]?fw.color:'var(--mars-dust)'}`,
+                background:selectedFrameworks[fw.key]?`${fw.color}15`:'transparent',
+                color:selectedFrameworks[fw.key]?fw.color:'var(--dust-muted)',
+                cursor:'pointer',transition:'all 0.15s',fontSize:10,fontWeight:600}}>
+              <span style={{fontSize:13}}>{fw.icon}</span>
+              <span>{fw.label}</span>
+              <span style={{fontSize:8,opacity:0.7}}>({fw.count})</span>
+              <span style={{fontSize:11,marginLeft:2}}>{selectedFrameworks[fw.key]?'✓':'○'}</span>
+            </button>
+          ))}
+        </div>
+        {(!selectedFrameworks.mitre_attack&&!selectedFrameworks.mitre_atlas)&&(
+          <div style={{fontSize:9,color:'var(--accent-red)',fontWeight:600}}>⚠️ 脅威フレームワークが未選択です</div>
+        )}
+      </div>
+
       {/* ===== TOP DASHBOARD: ZTMM Overview ===== */}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:12,marginBottom:24}}>
         <div className="score-card overall">
@@ -2999,12 +3050,12 @@ function App(){
       <div className="tabs">
         <span className="tab-group-label">コア<br/>フロー</span>
         <button className={`tab ${activeView==='zt-dashboard'?'active':''}`} onClick={()=>setActiveView('zt-dashboard')}>🏛️ ZTダッシュボード</button>
-        <button className={`tab ${activeView==='threat-map'?'active':''}`} onClick={()=>setActiveView('threat-map')}>⚔️ 脅威×ZTマッピング</button>
+        {(selectedFrameworks.mitre_attack||selectedFrameworks.mitre_atlas)&&<button className={`tab ${activeView==='threat-map'?'active':''}`} onClick={()=>setActiveView('threat-map')}>⚔️ 脅威×ZTマッピング</button>}
         <button className={`tab ${activeView==='actions'?'active':''}`} onClick={()=>setActiveView('actions')}>🎯 アクション計画</button>
         <div className="tab-separator"/>
         <span className="tab-group-label">詳細<br/>検証</span>
-        <button className={`tab tab-appendix ${activeView==='assess'?'active':''}`} onClick={()=>setActiveView('assess')}>📋 脅威評価（検証）</button>
-        <button className={`tab tab-appendix ${activeView==='governance'?'active':''}`} onClick={()=>setActiveView('governance')}>🔷 ガバナンス（AI RMF）</button>
+        {(selectedFrameworks.mitre_attack||selectedFrameworks.mitre_atlas)&&<button className={`tab tab-appendix ${activeView==='assess'?'active':''}`} onClick={()=>setActiveView('assess')}>📋 脅威評価（検証）</button>}
+        {selectedFrameworks.nist_ai_rmf&&<button className={`tab tab-appendix ${activeView==='governance'?'active':''}`} onClick={()=>setActiveView('governance')}>🔷 ガバナンス（AI RMF）</button>}
       </div>
 
       <div className="export-bar">
@@ -3054,7 +3105,7 @@ function App(){
       {/* ===== ZT DASHBOARD VIEW ===== */}
       {activeView==='zt-dashboard'&&(
         <div>
-          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm} filteredTechniques={filteredTechniques}/>
           {/* P4-10: Snapshot comparison banner */}
           {compareSnapshot&&(
             <div style={{marginBottom:12,padding:'10px 14px',background:'rgba(124,58,237,0.08)',border:'1px solid rgba(124,58,237,0.3)',borderRadius:8,display:'flex',alignItems:'center',gap:12}}>
@@ -3152,9 +3203,9 @@ function App(){
               </span>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}}>
-              {Object.keys(PHASES).map(ph=>{
+              {Object.keys(PHASES).filter(ph=>ph==='atlas'?selectedFrameworks.mitre_atlas:selectedFrameworks.mitre_attack).map(ph=>{
                 const phs=PHASES[ph];
-                const techs=TECHNIQUES.filter(t=>t.phase===ph);
+                const techs=filteredTechniques.filter(t=>t.phase===ph);
                 const total=techs.length;
                 const tobe=techs.filter(t=>mitigatedByZtmm.has(t.id)).length;
                 const asis=techs.filter(t=>mitigatedByAsIs.has(t.id)).length;
@@ -3246,8 +3297,8 @@ function App(){
                       const threatsAtTgt=[];
                       ZTMM_MITRE_MAP.forEach(m=>{
                         if(m.ztmm===z.id){
-                          if(ztCur[z.id]>=m.lv) m.techs.forEach(tid=>{const t=TECHNIQUES.find(x=>x.id===tid);if(t&&!threatsAtCur.find(x=>x.id===tid))threatsAtCur.push(t);});
-                          if(ztTgt[z.id]>=m.lv) m.techs.forEach(tid=>{const t=TECHNIQUES.find(x=>x.id===tid);if(t&&!threatsAtTgt.find(x=>x.id===tid))threatsAtTgt.push(t);});
+                          if(ztCur[z.id]>=m.lv) m.techs.forEach(tid=>{const t=filteredTechniques.find(x=>x.id===tid);if(t&&!threatsAtCur.find(x=>x.id===tid))threatsAtCur.push(t);});
+                          if(ztTgt[z.id]>=m.lv) m.techs.forEach(tid=>{const t=filteredTechniques.find(x=>x.id===tid);if(t&&!threatsAtTgt.find(x=>x.id===tid))threatsAtTgt.push(t);});
                         }
                       });
                       const newThreats=threatsAtTgt.filter(t=>!threatsAtCur.find(x=>x.id===t.id));
@@ -3495,7 +3546,7 @@ function App(){
 
               {/* Phase-by-phase breakdown */}
               {Object.entries(PHASES).map(([phase,phaseInfo])=>{
-                const phaseTechs=TECHNIQUES.filter(t=>t.phase===phase);
+                const phaseTechs=filteredTechniques.filter(t=>t.phase===phase);
                 if(phaseTechs.length===0)return null;
                 const asIsCov=phaseTechs.filter(t=>mitigatedByAsIs.has(t.id)).length;
                 const toBeCov=phaseTechs.filter(t=>mitigatedByZtmm.has(t.id)).length;
@@ -3590,7 +3641,7 @@ function App(){
       {/* ===== THREAT × ZT MAPPING VIEW ===== */}
       {activeView==='threat-map'&&(
         <div>
-          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm} filteredTechniques={filteredTechniques}/>
 
           {/* P2-5: Threat Actor filter */}
           <div style={{marginBottom:10,padding:'8px 12px',background:'var(--mars-rock)',borderRadius:8,border:'1px solid var(--mars-dust)'}}>
@@ -3642,17 +3693,17 @@ function App(){
               style={selectedStatusFilter==='asis'?{borderColor:'var(--accent-green)',color:'var(--accent-green)',background:'rgba(16,185,129,0.08)'}:{}}
               onClick={()=>setSelectedStatusFilter('asis')}>AS-IS解消済</button>
             <span className="mono" style={{fontSize:11,color:'var(--text-muted)',lineHeight:'28px',marginLeft:8}}>
-              {(()=>{const f=TECHNIQUES.filter(t=>{
+              {(()=>{const f=filteredTechniques.filter(t=>{
                 if(selectedPillarFilter!=='all'){const pids=ZTMM_DATA.filter(z=>z.pillar===selectedPillarFilter).map(z=>z.id);if(!ZTMM_MITRE_MAP.some(m=>pids.includes(m.ztmm)&&m.techs.includes(t.id)))return false;}
                 const a=mitigatedByAsIs.has(t.id),b=mitigatedByZtmm.has(t.id);
                 if(selectedStatusFilter==='uncovered')return!b;if(selectedStatusFilter==='tobe')return b&&!a;if(selectedStatusFilter==='asis')return a;return true;
-              });return f.length+' / '+TECHNIQUES.length+' 件表示';})()}
+              });return f.length+' / '+filteredTechniques.length+' 件表示';})()}
             </span>
           </div>
 
           {/* Threat cards — compact rows, click to expand */}
           <div style={{display:'flex',flexDirection:'column',gap:2}}>
-            {TECHNIQUES.filter(t=>{
+            {filteredTechniques.filter(t=>{
               if(selectedActor!=='all'){const a=THREAT_ACTORS.find(x=>x.id===selectedActor);if(a&&!a.techs.includes(t.id))return false;}
               if(selectedPillarFilter!=='all'){
                 const pillarIds=ZTMM_DATA.filter(z=>z.pillar===selectedPillarFilter).map(z=>z.id);
@@ -3753,7 +3804,7 @@ function App(){
       {/* ===== ACTION PLAN VIEW ===== */}
       {activeView==='actions'&&(
         <div>
-          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm} filteredTechniques={filteredTechniques}/>
           {actionItems.length===0?(
             <div style={{textAlign:'center',padding:40,color:'var(--text-muted)'}}>
               ZTMMのTO-BEレベルをAS-ISより高く設定すると、アクションカードが自動生成されます。
@@ -3927,7 +3978,7 @@ function App(){
       {/* ===== ASSESS VIEW (threat evaluation input) ===== */}
       {activeView==='assess'&&(
         <div>
-          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm} filteredTechniques={filteredTechniques}/>
           <div style={{padding:'14px 18px',marginBottom:16,background:'linear-gradient(135deg,rgba(232,108,0,0.08),rgba(232,108,0,0.02))',border:'1px solid rgba(232,108,0,0.25)',borderLeft:'4px solid var(--accent-orange)',borderRadius:8}}>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
               <span style={{fontSize:16}}>🔍</span>
@@ -3948,8 +3999,8 @@ function App(){
               <div key={o.key} className="legend-item"><div className="legend-dot" style={{background:`var(--status-${o.key})`}}/>{o.label}{o.score!==null?` (${o.score})`:''}</div>
             ))}
           </div>
-          {Object.entries(PHASES).map(([phaseKey,phase])=>{
-            const phaseTechs=TECHNIQUES.filter(t=>t.phase===phaseKey);
+          {Object.entries(PHASES).filter(([phaseKey])=>phaseKey==='atlas'?selectedFrameworks.mitre_atlas:selectedFrameworks.mitre_attack).map(([phaseKey,phase])=>{
+            const phaseTechs=filteredTechniques.filter(t=>t.phase===phaseKey);
             return(
               <div key={phaseKey} className="phase-section" style={{marginBottom:16}}>
                 <div className="phase-header" role="button" tabIndex={0} aria-expanded={!!expandedPillars[`phase-${phaseKey}`]} onClick={()=>setExpandedPillars(prev=>({...prev,[`phase-${phaseKey}`]:!prev[`phase-${phaseKey}`]}))} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setExpandedPillars(prev=>({...prev,[`phase-${phaseKey}`]:!prev[`phase-${phaseKey}`]}));}}}>
@@ -4115,9 +4166,9 @@ function App(){
       )}
 
       {/* ===== GOVERNANCE VIEW ===== */}
-      {activeView==='governance'&&(
+      {activeView==='governance'&&selectedFrameworks.nist_ai_rmf&&(
         <div>
-          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm}/>
+          <ContextBanner activeView={activeView} threatCoverage={threatCoverage} ztmmOverall={ztmmOverall} actionItems={actionItems} mitigatedByAsIs={mitigatedByAsIs} mitigatedByZtmm={mitigatedByZtmm} filteredTechniques={filteredTechniques}/>
           {/* RMF Coverage Note */}
           <div style={{marginBottom:12,padding:'10px 14px',background:'rgba(124,58,237,0.06)',border:'1px solid rgba(124,58,237,0.2)',borderRadius:8,cursor:'pointer'}}
             onClick={()=>setShowAispm(prev=>!prev)}>
