@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.0-blue" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-4.3.0-blue" alt="Version"/>
   <img src="https://img.shields.io/badge/license-Apache_2.0-blue" alt="License"/>
   <img src="https://img.shields.io/badge/frameworks-ZTMM_×_ATT&CK_×_ATLAS_×_NIST_AI_RMF-green" alt="Frameworks"/>
   <img src="https://img.shields.io/badge/deployment-Single_HTML-purple" alt="Deployment"/>
@@ -158,6 +158,7 @@ MAAZは、ゼロトラスト・アーキテクチャの導入支援を通じて�
 
 | バージョン | 日付 | 変更内容 |
 |:---|:---|:---|
+| v4.3.0 | 2026-04-06 | UI全面リデザイン（Mars Horizon Theme + グラスモーフィズム）、残存リスク可視化、業界標準ギャップ分析、ロードマップ型アクション計画、ダーク/ライトテーマ刷新 |
 | v4.0 | 2026-03 | ゼロトラスト実装駆動型に全面再設計：3ステップのコアワークフロー、ピラー中心のダッシュボード、アクション計画の自動生成、脅威×ZTマッピングマトリクス、ATLAS 13技法、脅威アクター5グループ、業種プリセット6種、JSON import/export、スナップショット比較、NHI分類体系、AISPMメトリクス、ライト/ダークモード、印刷対応、アクセシビリティ強化 |
 | v3.0 | 2026-02 | ATLAS Phase 5（AI技術13件）追加、XAIスコアリング、NIST AI RMFタブ、アコーディオン展開式解説 |
 | v2.0 | 2026-01 | ZTMM→MITRE自動導出システム、MGA Calculator連携 |
