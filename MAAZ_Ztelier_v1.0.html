@@ -2144,6 +2144,121 @@ const SCOPE_VALUES = {
   "NA": { value: null, label: "N/A",    desc: "存在しない・評価対象外（計算から除外）" }
 };
 
+/* ============================================================
+   MITRE Engage (Active Defense) Activities — 12 selected
+   ネットワーク刷新不要で能動的サイバー防御を実現するフレームワーク。
+   ZTMM 成熟度の残余ギャップを実効的に補う「並行トラック」として位置付け。
+
+   Source: https://engage.mitre.org/matrix/
+   選定基準: AW現場90分セッションで説明可能、かつ ATT&CK/ATLAS の主要技法に
+   マッピング可能な実戦価値の高い12アクティビティに厳選。
+   ============================================================ */
+const ENGAGE_ACTIVITIES = [
+  {
+    id: "EAC0005", name: "Lures",
+    jp: "囮システム・ブレッドクラム",
+    goals: ["Expose", "Affect", "Elicit"],
+    approaches: ["Detect", "Direct"],
+    desc: "偽アカウント・偽ファイル・偽トークンを配置し、攻撃者の関心を誘導・検知する基盤アクティビティ。",
+    atlasContribute: ["AML.T0060", "AML.T0012", "AML.T0058", "AML.T0059"]
+  },
+  {
+    id: "EAC0002", name: "Network Monitoring",
+    jp: "ネットワーク監視",
+    goals: ["Expose"],
+    approaches: ["Collect", "Detect"],
+    desc: "通信トラフィックの可視化と異常検知。C2・エクスフィル・横展開の即時検出を実現。",
+    atlasContribute: ["AML.T0056", "AML.T0059", "AML.T0024"]
+  },
+  {
+    id: "EAC0003", name: "System Activity Monitoring",
+    jp: "システム活動監視",
+    goals: ["Expose"],
+    approaches: ["Collect", "Detect"],
+    desc: "OSログ・プロセス・ユーザー活動の記録から攻撃者の行動を特定。EDRの基礎機能。",
+    atlasContribute: ["AML.T0020", "AML.T0049", "AML.T0061"]
+  },
+  {
+    id: "EAC0001", name: "API Monitoring",
+    jp: "API監視",
+    goals: ["Expose"],
+    approaches: ["Collect", "Detect"],
+    desc: "内部API呼び出しの観測。LLM APIやエージェント通信の意図解析・サニタイズに応用。",
+    atlasContribute: ["AML.T0051", "AML.T0049", "AML.T0024"]
+  },
+  {
+    id: "EAC0011", name: "Pocket Litter",
+    jp: "カナリアトークン・偽データ",
+    goals: ["Affect", "Elicit"],
+    approaches: ["Detect", "Direct"],
+    desc: "機密データに偽物を紛れ込ませ、窃取時に即時アラートを発生させる。RAGデータ保護に有効。",
+    atlasContribute: ["AML.T0058", "AML.T0024", "AML.T0020"]
+  },
+  {
+    id: "EAC0012", name: "Personas",
+    jp: "ペルソナ（偽ID・ハニーアカウント）",
+    goals: ["Affect", "Elicit"],
+    approaches: ["Direct", "Disrupt"],
+    desc: "特権IDやNHIを模した偽アカウント。攻撃者の認証試行・権限昇格を即時検知する。",
+    atlasContribute: ["AML.T0060", "AML.T0012", "AML.T0059"]
+  },
+  {
+    id: "EAC0013", name: "Malware Detonation",
+    jp: "マルウェア隔離起爆",
+    goals: ["Expose", "Elicit"],
+    approaches: ["Collect", "Disrupt"],
+    desc: "疑わしい実行ファイルをサンドボックス内で起爆し挙動解析。AIエージェントの異常実行検知にも応用。",
+    atlasContribute: ["AML.T0049", "AML.T0020"]
+  },
+  {
+    id: "EAC0009", name: "Email Manipulation",
+    jp: "メールフロー操作",
+    goals: ["Expose", "Affect"],
+    approaches: ["Collect", "Direct"],
+    desc: "フィッシングメールを囮環境へ誘導し検知・分析。プロンプトインジェクション搬入経路の遮断にも機能。",
+    atlasContribute: ["AML.T0051"]
+  },
+  {
+    id: "EAC0015", name: "Information Manipulation",
+    jp: "情報操作",
+    goals: ["Affect"],
+    approaches: ["Direct", "Reassure"],
+    desc: "偽の設定情報・クレデンシャル・ドキュメントを配置。学習データ汚染検知と攻撃者誘導を兼ねる。",
+    atlasContribute: ["AML.T0020", "AML.T0024", "AML.T0058"]
+  },
+  {
+    id: "EAC0018", name: "Security Controls",
+    jp: "セキュリティ制御の可視化",
+    goals: ["Affect"],
+    approaches: ["Prevent", "Disrupt"],
+    desc: "既存防御を意図的に露見させ攻撃者の行動を誘導。SOC運用と密連携した能動防御の土台。",
+    atlasContribute: ["AML.T0054", "AML.T0061"]
+  },
+  {
+    id: "EAC0020", name: "Isolation",
+    jp: "セグメント隔離",
+    goals: ["Affect"],
+    approaches: ["Prevent", "Disrupt"],
+    desc: "疑わしいエンティティを論理的に隔離し被害を局所化。既存環境に後付け可能な対策。",
+    atlasContribute: ["AML.T0059", "AML.T0061"]
+  },
+  {
+    id: "EAC0023", name: "Introduced Vulnerabilities",
+    jp: "意図的脆弱性",
+    goals: ["Elicit"],
+    approaches: ["Direct", "Motivate"],
+    desc: "既知の脆弱性を持つ偽資産を配置し、攻撃者のTTP・目的を観測。高度なAE運用向け。",
+    atlasContribute: ["AML.T0012"]
+  }
+];
+
+/* Engage Goal メタ情報 */
+const ENGAGE_GOALS = {
+  "Expose":  { jp: "露見",   desc: "攻撃者を観測可能にする",       color: "var(--info)"    },
+  "Affect":  { jp: "影響",   desc: "攻撃者の作戦に負の影響を与える", color: "var(--warn)"    },
+  "Elicit":  { jp: "誘出",   desc: "攻撃者から情報を引き出す",     color: "var(--trust-2)" }
+};
+
 /* === PILLAR MAPPING (6 MAAZ pillars → Ztelier palette vars) === */
 const PILLAR_MAP = {
   "Identity":        { key:"identity",  var:"--p-identity",  jp:"アイデンティティ", code:"ID" },
@@ -2510,17 +2625,24 @@ function IntroView({ customerName, setCustomerName, assessmentDate, setAssessmen
 }
 
 /* ================== DASHBOARD VIEW ================== */
-function DashboardView({ customerName, assessmentDate, ztCur, ztTgt, pillarScores, ztmmOverall, threatCoverage, atlasCoverage, radarData, effectiveCoverage, bottleneck, actionItems, onGotoActions, aiScf }){
+function DashboardView({ customerName, assessmentDate, ztCur, ztTgt, pillarScores, ztmmOverall, threatCoverage, atlasCoverage, radarData, effectiveCoverage, bottleneck, actionItems, onGotoActions, aiScf, dciScore, dciAlpha }){
   const atkTotal = TECHNIQUES.filter(t => t.phase !== "atlas").length;
   const atkCovered = TECHNIQUES.filter(t => t.phase !== "atlas" && threatCoverage.coveredAsIsSet.has(t.id)).length;
   const atkCoveredTgt = TECHNIQUES.filter(t => t.phase !== "atlas" && threatCoverage.coveredToBeSet.has(t.id)).length;
   const atlTotal = TECHNIQUES.filter(t => t.phase === "atlas").length;
-  // ATLAS技法はAI-SCF（AI特化リソースのスコープ加重）で補正する。
-  // AI非対応（N）ならATLAS実効カバレッジは目減りする。
+  // ATLAS技法は max(AI-SCF, DCI) で補正する。
+  // AI非対応(SCF=0)でもDeceptionで検知できる場合は、その分カバーされる。
+  const atlScf = Math.max(aiScf?.scf ?? 1, dciScore?.dci ?? 0);
   const atlCoveredAsRaw = TECHNIQUES.filter(t => t.phase === "atlas" && threatCoverage.coveredAsIsSet.has(t.id)).length;
   const atlCoveredRaw = TECHNIQUES.filter(t => t.phase === "atlas" && threatCoverage.coveredToBeSet.has(t.id)).length;
-  const atlCoveredAs = Math.round(atlCoveredAsRaw * (aiScf?.scf ?? 1));
-  const atlCovered = Math.round(atlCoveredRaw * (aiScf?.scf ?? 1));
+  const atlCoveredAs = Math.round(atlCoveredAsRaw * atlScf);
+  const atlCovered = Math.round(atlCoveredRaw * atlScf);
+
+  // Active Defense Boost: (100 - ZTMM) × DCI × α で残余ギャップを補正
+  const adBoostCur = (100 - ztmmOverall.cur) * (dciScore?.dci ?? 0) * (dciAlpha ?? 0.25);
+  const adBoostTgt = (100 - ztmmOverall.tgt) * (dciScore?.dci ?? 0) * (dciAlpha ?? 0.25);
+  const effectiveCur = ztmmOverall.cur + adBoostCur;
+  const effectiveTgt = ztmmOverall.tgt + adBoostTgt;
 
   // v1.1: 実効カバレッジとスコープ目減り
   const hasScope = effectiveCoverage && effectiveCoverage.coveredToBeEffective < effectiveCoverage.coveredToBeIdeal - 0.1;
@@ -2581,14 +2703,24 @@ function DashboardView({ customerName, assessmentDate, ztCur, ztTgt, pillarScore
           <ChapterMarker num="01.1" label="Maturity Gauge" jp="成熟度ゲージ"/>
           <div className="grid-2 reveal">
             <div className="card elevated" style={{padding:"24px",display:"flex",alignItems:"center",justifyContent:"space-around",gap:"24px",flexWrap:"wrap"}}>
-              <div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}>
                 <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--ink-3)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:"8px"}}>AS-IS · 現在地</div>
                 <Gauge score={ztmmOverall.cur} label="AS-IS"/>
+                {adBoostCur > 0.5 && (
+                  <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--trust-2)",letterSpacing:".04em",marginTop:"4px"}}>
+                    +<span className="num">{adBoostCur.toFixed(1)}</span> <span style={{color:"var(--ink-3)"}}>AD Boost → {effectiveCur.toFixed(0)}</span>
+                  </div>
+                )}
               </div>
               <div style={{color:"var(--ink-3)",fontFamily:"var(--font-mono)",fontSize:"24px",letterSpacing:".2em"}}>→</div>
-              <div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}>
                 <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--ink-3)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:"8px"}}>TO-BE · 目標</div>
                 <Gauge score={ztmmOverall.tgt} label="TO-BE"/>
+                {adBoostTgt > 0.5 && (
+                  <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--trust-2)",letterSpacing:".04em",marginTop:"4px"}}>
+                    +<span className="num">{adBoostTgt.toFixed(1)}</span> <span style={{color:"var(--ink-3)"}}>AD Boost → {effectiveTgt.toFixed(0)}</span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="card elevated" style={{padding:"24px"}}>
@@ -2609,8 +2741,10 @@ function DashboardView({ customerName, assessmentDate, ztCur, ztTgt, pillarScore
             <CoverageDonut title="MITRE ATT&CK" sub="Enterprise 攻撃技法" covered={atkCoveredTgt} total={atkTotal} asIs={atkCovered} tone="primary"/>
             <CoverageDonut
               title="MITRE ATLAS"
-              sub={aiScf.scf < 0.99
-                ? `AI/ML技法 · AI-SCF ${Math.round(aiScf.scf * 100)}%`
+              sub={atlScf < 0.99
+                ? (dciScore.dci > aiScf.scf
+                   ? `AI/ML技法 · DCI ${Math.round(dciScore.dci * 100)}% (AD補完)`
+                   : `AI/ML技法 · AI-SCF ${Math.round(aiScf.scf * 100)}%`)
                 : "AI/ML セキュリティ技法"}
               covered={atlCovered}
               total={atlTotal}
@@ -3084,7 +3218,7 @@ function ThreatMapView({ ztCur, ztTgt, mitigatedByAsIs, mitigatedByToBe }){
    ゼロトラストの実効性は「対応するリソースのスコープ」が全て。
    ZTMM成熟度が高くても、NHI/LAN/WAN等が対象外なら実効カバレッジは目減り。
    ============================================================== */
-function ScopeView({ scopeState, setScopeState, effectiveCoverage, bottleneck, threatCoverage, pillarScores }){
+function ScopeView({ scopeState, setScopeState, effectiveCoverage, bottleneck, threatCoverage, pillarScores, dciState, setDciState, dciAlpha, setDciAlpha, dciScore, ztmmOverall }){
   const setScope = (pillar, resId, val) => {
     setScopeState(prev => ({
       ...prev,
@@ -3178,7 +3312,217 @@ function ScopeView({ scopeState, setScopeState, effectiveCoverage, bottleneck, t
           </div>
         </section>
       )}
+
+      {/* === Chapter 02.5.2 Active Defense (MITRE Engage) === */}
+      <ActiveDefenseSection
+        dciState={dciState}
+        setDciState={setDciState}
+        dciAlpha={dciAlpha}
+        setDciAlpha={setDciAlpha}
+        dciScore={dciScore}
+        ztmmOverall={ztmmOverall}
+      />
     </>
+  );
+}
+
+/* ================== ACTIVE DEFENSE SECTION ================== */
+function ActiveDefenseSection({ dciState, setDciState, dciAlpha, setDciAlpha, dciScore, ztmmOverall }){
+  const setDci = (id, val) => {
+    setDciState(prev => ({ ...prev, [id]: val }));
+  };
+  const resetAllN = () => {
+    const reset = {};
+    ENGAGE_ACTIVITIES.forEach(a => { reset[a.id] = "N"; });
+    setDciState(reset);
+  };
+
+  const dciPct = Math.round(dciScore.dci * 100);
+  const dciColor = dciScore.dci >= 0.5 ? "var(--trust)"
+                : dciScore.dci >= 0.25 ? "var(--warn)"
+                : "var(--ink-3)";
+
+  const boostCur = (100 - ztmmOverall.cur) * dciScore.dci * dciAlpha;
+  const boostTgt = (100 - ztmmOverall.tgt) * dciScore.dci * dciAlpha;
+
+  return (
+    <section className="section">
+      <div className="container">
+        <ChapterMarker num="02.5.2" label="Active Defense" jp="能動的サイバー防御 · MITRE Engage"/>
+        <p className="lede-jp reveal" style={{marginBottom:"20px",fontSize:"13px",color:"var(--ink-2)"}}>
+          ネットワーク刷新が困難な環境でも、<em>既存環境に後付け可能</em>な能動的サイバー防御。
+          ZTMM 成熟度の残余ギャップを MITRE Engage の 12アクティビティで補完し、
+          AI 脅威（ATLAS）カバレッジにも寄与します。
+        </p>
+
+        {/* KPI Row */}
+        <div className="grid-3 reveal" style={{marginBottom:"24px"}}>
+          <div className="card elevated" style={{padding:"20px",display:"flex",flexDirection:"column",gap:"8px"}}>
+            <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--ink-3)",letterSpacing:".14em",textTransform:"uppercase"}}>DCI · Deception Coverage</div>
+            <div style={{display:"flex",alignItems:"baseline",gap:"6px"}}>
+              <span className="num" style={{fontFamily:"var(--font-display)",fontSize:"44px",fontWeight:300,color:dciColor,letterSpacing:"-0.02em",lineHeight:1}}>{dciPct}</span>
+              <span style={{fontSize:"16px",color:"var(--ink-3)"}}>%</span>
+            </div>
+            <div style={{fontFamily:"var(--font-jp)",fontSize:"11px",color:"var(--ink-3)"}}>
+              12アクティビティ中 {dciScore.applicable - Math.round((1-dciScore.dci) * dciScore.applicable)}項目が寄与
+            </div>
+          </div>
+          <div className="card elevated" style={{padding:"20px",display:"flex",flexDirection:"column",gap:"8px"}}>
+            <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--ink-3)",letterSpacing:".14em",textTransform:"uppercase"}}>α · Boost Coefficient</div>
+            <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+              <span className="num" style={{fontFamily:"var(--font-display)",fontSize:"28px",fontWeight:300,color:"var(--ink)",letterSpacing:"-0.02em"}}>{dciAlpha.toFixed(2)}</span>
+              <input type="range" min="0.15" max="0.35" step="0.05" value={dciAlpha}
+                onChange={e => setDciAlpha(parseFloat(e.target.value))}
+                style={{flex:1,accentColor:"var(--primary)"}}/>
+            </div>
+            <div style={{fontFamily:"var(--font-jp)",fontSize:"11px",color:"var(--ink-3)"}}>
+              既定 0.25 · 調整範囲 0.15-0.35（MITRE Engage/Attivo実証ベース）
+            </div>
+          </div>
+          <div className="card elevated" style={{padding:"20px",display:"flex",flexDirection:"column",gap:"8px"}}>
+            <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--ink-3)",letterSpacing:".14em",textTransform:"uppercase"}}>実効成熟度ブースト</div>
+            <div style={{display:"flex",alignItems:"baseline",gap:"6px"}}>
+              <span style={{fontFamily:"var(--font-mono)",fontSize:"14px",color:"var(--ink-3)"}}>AS-IS</span>
+              <span className="num" style={{fontFamily:"var(--font-display)",fontSize:"24px",fontWeight:400,color:"var(--trust-2)"}}>+{boostCur.toFixed(1)}</span>
+              <span style={{fontFamily:"var(--font-mono)",fontSize:"14px",color:"var(--ink-3)",marginLeft:"8px"}}>TO-BE</span>
+              <span className="num" style={{fontFamily:"var(--font-display)",fontSize:"24px",fontWeight:400,color:"var(--trust-2)"}}>+{boostTgt.toFixed(1)}</span>
+            </div>
+            <div style={{fontFamily:"var(--font-jp)",fontSize:"11px",color:"var(--ink-3)"}}>
+              ZTMM実効値に加算される補助防御力
+            </div>
+          </div>
+        </div>
+
+        {/* Goal Coverage Bars */}
+        <div className="card elevated reveal" style={{padding:"20px",marginBottom:"24px"}}>
+          <div style={{fontFamily:"var(--font-mono)",fontSize:"10px",color:"var(--ink-3)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:"16px"}}>Engagement Goals Coverage</div>
+          {["Expose","Affect","Elicit"].map(g => {
+            const meta = ENGAGE_GOALS[g];
+            const cov = dciScore.goalCov[g] || 0;
+            const pct = Math.round(cov * 100);
+            return (
+              <div key={g} style={{display:"grid",gridTemplateColumns:"120px 1fr 60px",gap:"12px",alignItems:"center",padding:"8px 0",borderBottom:"1px dashed var(--line)"}}>
+                <div>
+                  <div style={{fontFamily:"var(--font-mono)",fontSize:"11px",color:"var(--ink)",fontWeight:500,letterSpacing:".04em"}}>{g}</div>
+                  <div style={{fontFamily:"var(--font-jp)",fontSize:"10px",color:"var(--ink-3)"}}>{meta.jp} · {meta.desc}</div>
+                </div>
+                <div style={{height:"8px",background:"var(--bg-3)",borderRadius:"4px",position:"relative"}}>
+                  <div style={{
+                    position:"absolute",left:0,top:0,bottom:0,
+                    width:pct+"%",borderRadius:"4px",
+                    background:meta.color,
+                    transition:"width .6s cubic-bezier(.2,.6,.2,1)"
+                  }}></div>
+                </div>
+                <div className="num" style={{fontFamily:"var(--font-mono)",fontSize:"12px",color:"var(--ink)",textAlign:"right"}}>{pct}%</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Activities List */}
+        <div style={{display:"flex",gap:"12px",alignItems:"center",marginBottom:"16px",flexWrap:"wrap"}}>
+          <span style={{fontFamily:"var(--font-jp)",fontSize:"12px",color:"var(--ink-3)"}}>
+            各アクティビティに対し <strong style={{color:"var(--trust)"}}>Y</strong>（完全）/ <strong style={{color:"var(--warn)"}}>P</strong>（部分）/ <strong style={{color:"var(--danger)"}}>N</strong>（未実装）/ <strong style={{color:"var(--ink-3)"}}>N/A</strong>（対象外）を指定
+          </span>
+          <div className="spacer"></div>
+          <button className="btn sm ghost" onClick={resetAllN}>全て N にリセット</button>
+        </div>
+
+        <div className="card elevated reveal" style={{padding:"0",overflow:"hidden"}}>
+          {ENGAGE_ACTIVITIES.map((a, idx) => {
+            const current = dciState[a.id] || "N";
+            return (
+              <div key={a.id} style={{
+                display:"grid",
+                gridTemplateColumns:"90px 1fr auto",
+                gap:"16px",
+                alignItems:"center",
+                padding:"14px 20px",
+                borderBottom: idx < ENGAGE_ACTIVITIES.length - 1 ? "1px solid var(--line)" : "none"
+              }}>
+                <div style={{fontFamily:"var(--font-mono)",fontSize:"11px",color:"var(--primary)",fontWeight:500,letterSpacing:".02em"}}>
+                  {a.id}
+                </div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontFamily:"var(--font-sans)",fontSize:"13px",color:"var(--ink)",fontWeight:500,marginBottom:"2px"}}>
+                    {a.name} <span style={{fontFamily:"var(--font-jp)",fontSize:"12px",color:"var(--ink-2)",fontWeight:400}}>· {a.jp}</span>
+                  </div>
+                  <div style={{fontFamily:"var(--font-jp)",fontSize:"11px",color:"var(--ink-3)",lineHeight:"1.5",marginBottom:"4px"}}>
+                    {a.desc}
+                  </div>
+                  <div style={{display:"flex",gap:"6px",flexWrap:"wrap",alignItems:"center"}}>
+                    {a.goals.map(g => {
+                      const gm = ENGAGE_GOALS[g];
+                      return (
+                        <span key={g} style={{
+                          fontFamily:"var(--font-mono)",fontSize:"9px",
+                          color:gm.color,letterSpacing:".08em",textTransform:"uppercase",
+                          padding:"1px 6px",borderRadius:"3px",
+                          border:"1px solid "+gm.color
+                        }}>{g}</span>
+                      );
+                    })}
+                    {a.atlasContribute && a.atlasContribute.length > 0 && (
+                      <span style={{fontFamily:"var(--font-mono)",fontSize:"9px",color:"var(--ink-4)",letterSpacing:".04em"}}>
+                        → {a.atlasContribute.length} ATLAS技法
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{display:"inline-flex",gap:"2px",background:"var(--bg-2)",borderRadius:"6px",padding:"2px",border:"1px solid var(--line)"}}>
+                  {["Y","P","N","NA"].map(v => {
+                    const active = current === v;
+                    const activeColor = v === "Y"  ? "var(--trust)"
+                                      : v === "P"  ? "var(--warn)"
+                                      : v === "N"  ? "var(--danger)"
+                                      : "var(--ink-3)";
+                    const displayLabel = v === "NA" ? "N/A" : v;
+                    return (
+                      <button key={v}
+                        onClick={() => setDci(a.id, v)}
+                        aria-pressed={active}
+                        style={{
+                          border:"none",
+                          background: active ? activeColor : "transparent",
+                          color: active ? "#fff" : "var(--ink-3)",
+                          cursor:"pointer",
+                          padding:"4px 10px",
+                          borderRadius:"4px",
+                          fontFamily:"var(--font-mono)",
+                          fontSize:"12px",
+                          fontWeight:600,
+                          transition:"background .15s, color .15s",
+                          minWidth:"32px",
+                          opacity: (!active && v === "NA") ? 0.7 : 1
+                        }}
+                      >
+                        {displayLabel}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 解説 */}
+        <div className="reveal" style={{
+          marginTop:"20px",
+          padding:"14px 18px",
+          background:"var(--bg-2)",
+          border:"1px solid var(--line)",
+          borderLeft:"3px solid var(--info)",
+          borderRadius:"6px",
+          fontFamily:"var(--font-jp)",fontSize:"12px",lineHeight:"1.7",color:"var(--ink-2)"
+        }}>
+          <strong style={{color:"var(--info)"}}>実効成熟度の計算式:</strong> 実効ZTMM = ZTMMスコア + (100 - ZTMMスコア) × DCI × α<br/>
+          α (0.15-0.35) はDeceptionの実効換算率。MITREの実証研究（Adversary Engagement適用でIoC獲得量20倍、Attivo調査でデータ侵害コスト51%削減）を踏まえ、保守的に0.25を既定値とする。
+          Lv1-2 組織ほど補完効果が大きく、Lv4 到達に近いほど逓減する設計。ATLAS カバレッジへは max(AI-SCF, DCI) で反映される。
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -4038,6 +4382,12 @@ function App(){
   });
   const [scopeState, setScopeState] = useState(defaultScopeState);
 
+  /* ==== Active Defense (MITRE Engage) state (v1.0 new) ==== */
+  const defaultDciState = {};
+  ENGAGE_ACTIVITIES.forEach(a => { defaultDciState[a.id] = "N"; });
+  const [dciState, setDciState] = useState(defaultDciState);
+  const [dciAlpha, setDciAlpha] = useState(0.25);  // ブースト係数 (0.15-0.35)
+
   const [snapshots, setSnapshots] = useState(() => {
     try { return JSON.parse(localStorage.getItem("maaz:snapshots") || "[]"); }
     catch { return []; }
@@ -4228,6 +4578,48 @@ function App(){
       allNA: naCount === AI_RESOURCES.length
     };
   }, [scopeState]);
+
+  /* ==== DCI — Deception Coverage Index (v1.0 new) ====
+     12アクティビティの Y=1 / P=0.5 / N=0 / NA=除外 加重平均で算出。
+     Goal別カバレッジ（Expose/Affect/Elicit）も同時計算しUI可視化に使う。
+     dciBoost = (100 - ZTMM) × DCI × α で成熟度の残余を補正する。 */
+  const dciScore = useMemo(() => {
+    let sum = 0, applicable = 0, naCount = 0;
+    const byGoal = { "Expose": {sum:0, n:0}, "Affect": {sum:0, n:0}, "Elicit": {sum:0, n:0} };
+    const atlasContributions = new Set();
+
+    ENGAGE_ACTIVITIES.forEach(a => {
+      const v = dciState[a.id] || "N";
+      const meta = SCOPE_VALUES[v];
+      if (!meta || meta.value === null) { naCount++; return; }
+      sum += meta.value;
+      applicable++;
+      // Goal別集計
+      a.goals.forEach(g => {
+        if (byGoal[g]) { byGoal[g].sum += meta.value; byGoal[g].n++; }
+      });
+      // ATLAS貢献: Y または P が付いていれば、対応ATLAS技法を集合に追加
+      if (meta.value > 0 && a.atlasContribute) {
+        a.atlasContribute.forEach(t => atlasContributions.add(t));
+      }
+    });
+
+    const dci = applicable > 0 ? sum / applicable : 0;
+    const goalCov = {};
+    Object.keys(byGoal).forEach(g => {
+      goalCov[g] = byGoal[g].n > 0 ? byGoal[g].sum / byGoal[g].n : 0;
+    });
+
+    return {
+      dci,                      // 0-1
+      applicable,
+      naCount,
+      total: ENGAGE_ACTIVITIES.length,
+      goalCov,                  // { Expose, Affect, Elicit }: 0-1
+      atlasCovered: atlasContributions.size,
+      atlasContributions        // Set<technique_id>
+    };
+  }, [dciState]);
 
   /* ==== Bottleneck detection (v1.1 new) ==== */
   const bottleneck = useMemo(() => {
@@ -4478,7 +4870,7 @@ function App(){
     content = <DashboardView ztCur={ztCur} ztTgt={ztTgt} pillarScores={pillarScores} ztmmOverall={ztmmOverall}
       threatCoverage={threatCoverage} radarData={radarData}
       effectiveCoverage={effectiveCoverage} bottleneck={bottleneck}
-      aiScf={aiScf}
+      aiScf={aiScf} dciScore={dciScore} dciAlpha={dciAlpha}
       actionItems={actionItems} onGotoActions={() => setChapter("actions")}
       customerName={customerName} assessmentDate={assessmentDate}/>;
   } else if (chapter === "assessment"){
@@ -4486,7 +4878,10 @@ function App(){
   } else if (chapter === "scope"){
     content = <ScopeView scopeState={scopeState} setScopeState={setScopeState}
       effectiveCoverage={effectiveCoverage} bottleneck={bottleneck}
-      threatCoverage={threatCoverage} pillarScores={pillarScores}/>;
+      threatCoverage={threatCoverage} pillarScores={pillarScores}
+      dciState={dciState} setDciState={setDciState}
+      dciAlpha={dciAlpha} setDciAlpha={setDciAlpha}
+      dciScore={dciScore} ztmmOverall={ztmmOverall}/>;
   } else if (chapter === "threats"){
     content = <ThreatMapView ztCur={ztCur} ztTgt={ztTgt} mitigatedByAsIs={mitigatedByAsIs} mitigatedByToBe={mitigatedByToBe}/>;
   } else if (chapter === "actions"){
