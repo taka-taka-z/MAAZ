@@ -6,11 +6,59 @@ and follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
 ---
 
-## [1.0.0] — 2026-04-20 — Ztelier Edition
+## [1.0.0] — 2026-04-21 — Ztelier Edition
 
 First public release as the **Ztelier brand launch** edition.
 Represents a ground-up redesign from the internal v4.x line, unified
 under the Ztelier Common Kit v1.3 design system.
+
+### Added
+- **Active Defense (MITRE Engage)** — New Chapter 02.5.2 integrating 12
+  selected Engage activities (EAC0001–EAC0023 subset) as a parallel track
+  to ZTMM. Provides Y/P/N/NA scoring per activity, Engagement Goals
+  coverage bars (Expose / Affect / Elicit), and α slider (0.15–0.35)
+  for the boost coefficient. Enables organizations that cannot modify
+  their network to still achieve measurable active-defense posture.
+- **DCI (Deception Coverage Index)** — Composite score calculated from
+  the 12 Engage activities. Boosts effective maturity as
+  `effective = ZTMM + (100 − ZTMM) × DCI × α`, giving stronger lift to
+  Lv1–2 organizations and diminishing returns toward Lv4.
+- **AI-SCF (AI Scope Coverage Factor)** — Weighted scope of AI-specific
+  resources (NHI / PAI / AI workload / AI SOC). ATLAS coverage on the
+  dashboard now multiplies by `max(AI-SCF, DCI)` so that organizations
+  with no AI controls cannot inflate ATLAS scores through general ZTMM
+  maturity alone.
+- **AD Boost indicator on Maturity Gauge** — AS-IS and TO-BE gauges now
+  display the Active Defense contribution (`+X.X`) below the main score
+  when DCI > 0, with the computed effective value shown alongside.
+- **Snapshot restore** — Export chapter snapshots now support one-click
+  restore of full assessment state (customer name, date, AS-IS, TO-BE,
+  scope, Active Defense). Previous versions saved but could not restore.
+
+### Changed
+- **ATLAS mapping refactor** — The ZTMM-to-ATLAS technique map has been
+  rewritten based on the AI-RMF × ATLAS × ZTA three-layer mapping.
+  ATLAS techniques are now concentrated on AI-specific controls
+  (AP-02, DA-01/02, CC-01/02/03, ID-02, DE-01) rather than being
+  attached to generic network controls (NW-01/02). Partial coverage is
+  now possible at Lv3 for several AI techniques, enabling graduated
+  roadmap design.
+- **Snapshot payload** — Now includes `id`, `customerName`,
+  `assessmentDate`, and `scopeState` in addition to prior fields.
+  Backward-compatible with older snapshot schemas.
+
+### Fixed
+- **ATLAS over-reporting bug** — Previously, reaching generic ZTMM Lv4
+  would automatically mark ATLAS techniques as covered, even without
+  any AI-specific controls. Dashboard now shows ATLAS coverage
+  corrected by `max(AI-SCF, DCI)`, with an explanatory AI-Scope warning
+  banner when the correction factor is below 99%.
+
+---
+
+## [1.0.0-preview] — 2026-04-20 — Ztelier Edition preview
+
+Preview build before the ATLAS correction and Active Defense work.
 
 ### Added
 - **Ztelier Common Kit v1.3 integration** — Paper (default light) and Indigo
