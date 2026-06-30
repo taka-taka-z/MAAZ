@@ -518,6 +518,92 @@ a:hover{ text-decoration:underline; }
 }
 .matrix-status .gap.up{ color:var(--trust); }
 .matrix-status .gap.flat{ color:var(--ink-3); }
+.matrix-status .hearing-toggle{
+  border:1px solid var(--line-2); background:var(--bg-1); cursor:pointer;
+  padding:4px 8px; border-radius:6px;
+  font-family:var(--font-mono); font-size:10px; font-weight:500;
+  color:var(--ink-2); letter-spacing:.04em;
+  transition: all .15s;
+  margin-top:2px;
+}
+.matrix-status .hearing-toggle:hover{ background:var(--bg-2); border-color:var(--primary); color:var(--primary); }
+.matrix-status .hearing-toggle.on{ background:var(--primary); border-color:var(--primary); color:#fff; }
+
+/* ==== Hearing panel (顧客ヒアリング用質問) ==== */
+.hearing-panel{
+  grid-column: 1 / -1;
+  background:var(--bg-2);
+  border-top:2px solid var(--primary-weak);
+  padding:16px 20px;
+}
+.hearing-panel-head{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
+  color:var(--primary-2); font-weight:600; margin-bottom:10px;
+  text-transform:uppercase;
+}
+.hearing-panel-tip{
+  font-family:var(--font-jp); font-size:11px; color:var(--ink-3);
+  line-height:1.6; margin-bottom:14px;
+}
+.hearing-levels{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+}
+.hearing-lv{
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+}
+.hearing-lv.cur{
+  border-color: var(--pillar, var(--primary));
+  box-shadow: inset 0 0 0 1px var(--pillar, var(--primary));
+}
+.hearing-lv.tgt{
+  background: color-mix(in srgb, var(--trust) 6%, var(--bg-1));
+  border-style: dashed;
+  border-color: var(--trust);
+}
+.hearing-lv.cur.tgt{
+  background: color-mix(in srgb, var(--pillar, var(--primary)) 8%, var(--bg-1));
+}
+.hearing-lv-head{
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:8px; padding-bottom:6px;
+  border-bottom:1px solid var(--line);
+}
+.hearing-lv-code{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
+  color:var(--ink); font-weight:600;
+}
+.hearing-lv-tag{
+  font-family:var(--font-mono); font-size:9px; letter-spacing:.1em;
+  padding:2px 6px; border-radius:4px;
+  text-transform:uppercase;
+}
+.hearing-lv-tag.cur{ background:var(--pillar, var(--primary)); color:#fff; }
+.hearing-lv-tag.tgt{ background:var(--trust); color:#fff; }
+.hearing-lv-summary{
+  font-family:var(--font-jp); font-size:10px; color:var(--ink-3);
+  margin-bottom:8px; line-height:1.5;
+}
+.hearing-q-list{
+  list-style:none; margin:0; padding:0;
+  display:flex; flex-direction:column; gap:6px;
+}
+.hearing-q-list li{
+  font-family:var(--font-jp); font-size:11px;
+  color:var(--ink); line-height:1.55;
+  padding-left:18px; position:relative;
+}
+.hearing-q-list li::before{
+  content:"Q"; position:absolute; left:0; top:0;
+  font-family:var(--font-mono); font-size:9px;
+  background:var(--primary-tint); color:var(--primary-2);
+  border-radius:3px; padding:1px 4px;
+  font-weight:600;
+}
 
 /* ==== Dual slider (AS-IS / TO-BE toggle + level buttons) ==== */
 .ds-wrap{
@@ -1763,151 +1849,154 @@ const PHASES = {
   atlas:     { label:"AI Security",   labelEn:"ATLAS" }
 };
 
-/* ================== ZTMM_DATA (18 controls × 4 levels) ================== */
+/* ================== ZTMM_DATA (18 controls × 4 levels) ==================
+   criteria[]: 顧客ヒアリング向けYes/No質問文。Lv判定の評価項目に対応。
+   ヒアリング時はLv1から順に「はい」が続く最高レベルを当該コントロールのAS-ISとする。
+   ======================================================================== */
 const ZTMM_DATA=[
 {pillar:"Identity",id:"ID-01",fn:"Authentication (認証)",
  lv:["固定パスワード / 多要素認証なし","一部でMFA導入 / 静的な属性ベース","全域でMFA導入 / フィッシング耐性あり","パスワードレス / 継続的な検証 / AIエージェントの認証も対象"],
  criteria:[
-  ["固定パスワードのみ","MFA未導入","共有アカウントの利用あり"],
-  ["一部ユーザー・システムでMFA導入","静的属性ベース認証（IP/グループ）","基本的パスワードポリシー適用"],
-  ["全ユーザー・全アプリでMFA強制","フィッシング耐性MFA（FIDO2/WebAuthn）","条件付きアクセスポリシー（デバイス/場所/リスク）","SSO統合による認証一元化"],
-  ["パスワードレス認証の全面展開","セッション中の継続的リスク評価・再認証","AIエージェント/NHIの認証管理","ITDR連携による異常認証リアルタイム検知"]
+  ["認証は固定パスワード(ID＋パスワード)のみで運用されていますか?","多要素認証(MFA)は未導入の状態ですか?","複数人で同一アカウントを共有利用している運用がありますか?"],
+  ["管理者など一部ユーザーまたは特定システムにのみMFAを導入していますか?","認証時にIPアドレスやADグループなど静的属性ベースの条件分岐を行っていますか?","パスワード長・複雑性・有効期限などの基本ポリシーを適用していますか?"],
+  ["全ユーザー・全アプリケーションでMFAを強制適用していますか?","FIDO2/WebAuthnなどフィッシング耐性のあるMFA手段を導入していますか?","デバイス状態・接続元・リスクスコアに応じた条件付きアクセスポリシーを設定していますか?","SSOで認証を一元化していますか?"],
+  ["全社的にパスワードレス認証(生体認証/パスキー等)を展開していますか?","ログイン後もセッション中のリスクを継続評価し、必要に応じて再認証を求めていますか?","AIエージェントやNHI(非人間ID)向けの認証管理体系を整備していますか?","ITDR(Identity Threat Detection and Response)と連携した異常認証のリアルタイム検知を行っていますか?"]
 ]},
 {pillar:"Identity",id:"ID-02",fn:"Identity Stores — NHI対応",
  lv:["オンプレミス単独 / 手動連携","一部クラウド化 / 限定的な統合","ハイブリッド統合 / フェデレーション / NHI台帳化開始","統合されたグローバルID / NHI完全管理"],
  criteria:[
-  ["オンプレAD/LDAP単独運用","ID連携なし・手動プロビジョニング","サービスアカウント管理なし"],
-  ["一部クラウドIdPへの移行","限定的なID同期","サービスアカウントの棚卸し開始"],
-  ["ハイブリッドIdP統合","フェデレーション（SAML/OIDC）全面展開","NHI台帳化開始","ライフサイクル管理の自動化"],
-  ["統合グローバルID基盤","NHI完全管理（エージェントID発行・ローテーション・失効）","人間IDとエージェントIDの完全分離","リアルタイムID同期"]
+  ["IDストアはオンプレミスAD/LDAP単独で運用されていますか?","クラウドサービスとのID連携がなく、手動でプロビジョニングしていますか?","サービスアカウント(NHI)の管理台帳は存在しない状態ですか?"],
+  ["一部のクラウドIdP(Entra ID/Okta等)への移行を進めていますか?","オンプレとクラウド間のID同期は限定的に行われていますか?","サービスアカウントの棚卸しを開始していますか?"],
+  ["オンプレIdPとクラウドIdPのハイブリッド統合を実現していますか?","SAML/OIDCによるフェデレーションを全アプリで展開していますか?","NHIの台帳化を開始していますか?","ID/権限のライフサイクル管理を自動化していますか?"],
+  ["全社共通の統合グローバルID基盤を運用していますか?","AIエージェントID等NHIの発行・ローテーション・失効を完全管理していますか?","人間IDとAIエージェントIDを明確に分離して管理していますか?","複数IdP間でID変更がリアルタイム同期される仕組みがありますか?"]
 ]},
 {pillar:"Identity",id:"ID-03",fn:"Risk Assessment (リスク評価)",
  lv:["評価なし / 静的ルールのみ","手動での分析 / 限定的な属性利用","振る舞い分析 / 自動化された基本ルール","機械学習によるリアルタイムリスク判定"],
  criteria:[
-  ["リスク評価プロセスなし","静的ルールのみ","ログイン異常の検知なし"],
-  ["手動でのリスク分析レポート","限定的な属性利用（地理/時間帯）","基本的なログイン失敗アラート"],
-  ["UEBAによる振る舞い分析","自動化されたリスクスコアリング","異常なアクセスパターンの検知と対応"],
-  ["ML/AIによるリアルタイムリスク判定","AIエージェントのITDR統合監視","予測的リスクスコアリング","適応型ポリシーの自動調整"]
+  ["ユーザー/セッション単位のリスク評価プロセスは存在しない状態ですか?","静的ルール(許可/拒否のみ)で認可判断していますか?","ログインの異常を検知する仕組みは未整備ですか?"],
+  ["リスク分析を担当者の手作業レポートで行っていますか?","地理情報・時間帯など限定的な属性のみリスク判定に利用していますか?","ログイン失敗回数の閾値アラートなど基本的な検知に留まっていますか?"],
+  ["UEBA(振る舞い分析)で異常を検知していますか?","リスクスコアリングを自動化していますか?","異常アクセスパターン検知時に自動応答(ブロック/追加認証)を発動していますか?"],
+  ["ML/AIでリアルタイムのリスク判定を行っていますか?","AIエージェントの振る舞いもITDRで統合監視していますか?","予測的リスクスコアリング(将来のリスク傾向予測)を実施していますか?","リスクスコアに応じてポリシーを自動で適応調整していますか?"]
 ]},
 {pillar:"Devices",id:"DE-01",fn:"Asset Management — AI BOM対応",
  lv:["手動台帳 / 不明なデバイスあり","定期的なスキャン / 一部自動化","一元管理 / 承認プロセスあり / AI BOM構築開始","全資産のリアルタイム自動検出 / AI BOM完備"],
  criteria:[
-  ["手動台帳管理（Excel等）","不明・未登録デバイスの存在","ソフトウェアインベントリなし"],
-  ["定期的なネットワークスキャン","一部資産の自動検出","基本的なソフトウェアインベントリ"],
-  ["CMDB等による一元管理","デバイス登録承認プロセス","AI BOM構築開始","SBOM/CBOM管理"],
-  ["全資産のリアルタイム自動検出・分類","AI BOM完備","AISPM連携による継続的リスク可視化","Shadow IT/Shadow AIの即時検知"]
+  ["IT資産台帳はExcel等で手動管理されていますか?","ネットワーク内に不明・未登録デバイスが存在する状態ですか?","ソフトウェアインベントリは未整備ですか?"],
+  ["ネットワークスキャンを定期的に実施していますか?","一部資産の自動検出ツールを導入していますか?","基本的なソフトウェアインベントリを保持していますか?"],
+  ["CMDB等で全資産を一元管理していますか?","新規デバイス接続時に登録承認プロセスが回りますか?","AIモデル/データセットのAI BOMを構築開始していますか?","SBOMやCBOMを継続的に管理していますか?"],
+  ["全資産のリアルタイム自動検出・分類が稼働していますか?","AI BOM(モデル/データ/依存関係)が完備されていますか?","AISPMと連携した継続的なリスク可視化を行っていますか?","Shadow IT / Shadow AIを即時検知できる仕組みがありますか?"]
 ]},
 {pillar:"Devices",id:"DE-02",fn:"Device Visibility (可視性)",
  lv:["限定的 / ログなし","基本的なログ収集","詳細なテレメトリ / 資産との紐づけ","継続的な監視 / フルスタックの可視化"],
  criteria:[
-  ["デバイスログなし","エンドポイント状態の把握不能","ネットワーク接続デバイスの可視化なし"],
-  ["基本的なログ収集","エンドポイントへのエージェント導入開始","基本的なアラート設定"],
-  ["詳細テレメトリ収集（プロセス・ネットワーク・ファイル）","資産DB・CMDBとの自動紐づけ","ログの一元集約と検索基盤"],
-  ["フルスタックの継続的可視化","AIコール端末のEDR統合監視","XDR連携による横断的インシデント検知"]
+  ["デバイスログの収集が行われていない状態ですか?","エンドポイントの稼働・健全性状態を把握できていない状態ですか?","ネットワーク接続デバイスの可視化は行われていない状態ですか?"],
+  ["基本的なログ収集(認証・接続ログ程度)を行っていますか?","主要エンドポイントにEDR/監視エージェントを導入し始めていますか?","基本的なアラート設定を行っていますか?"],
+  ["プロセス・ネットワーク・ファイル等の詳細テレメトリを収集していますか?","収集ログを資産DB/CMDBと自動で紐づけていますか?","ログを一元集約し横断検索可能な基盤を保持していますか?"],
+  ["フルスタック(エンドポイント~クラウド)で継続的な可視化を実現していますか?","AIプラットフォームを利用する端末をEDRで統合監視していますか?","XDR連携で横断的にインシデントを検知できますか?"]
 ]},
 {pillar:"Devices",id:"DE-03",fn:"Compliance & Health (健全性)",
  lv:["確認なし / 初期設定のみ","定期的なパッチ適用 / 基本的な検疫","コンプライアンスベースのアクセス制御","リアルタイムポスチャチェックと自動修復"],
  criteria:[
-  ["デバイス健全性確認なし","初期設定のまま運用","パッチ管理プロセスなし"],
-  ["定期的なパッチ適用","基本的な検疫","最低限のセキュリティ設定基準"],
-  ["コンプライアンスベースのアクセス制御","継続的な構成評価","脆弱性スキャンの自動化","スクリプト実行ポリシーの強制"],
-  ["リアルタイムポスチャチェック","自動修復（ドリフト検知→即時是正）","Browser Isolation連携","タンパーガードによる防御無効化防止"]
+  ["デバイス健全性(パッチ・設定)を確認するプロセスは無い状態ですか?","デバイスは初期設定のまま運用されていますか?","パッチ管理の標準プロセスは未整備ですか?"],
+  ["定期的にパッチ適用を実施していますか?","検疫ネットワーク等の基本的な隔離機能を持っていますか?","最低限のセキュリティ設定基準(ハードニング)を定義していますか?"],
+  ["デバイスのコンプライアンス状態に基づくアクセス制御を実施していますか?","継続的な構成評価(CSPM/EDR等)を行っていますか?","脆弱性スキャンを自動化していますか?","スクリプト実行ポリシーを技術的に強制していますか?"],
+  ["デバイスポスチャをリアルタイムでチェックしていますか?","構成ドリフト検知時に自動修復が走る仕組みがありますか?","Browser Isolationを連携運用していますか?","タンパーガードでセキュリティ機能の無効化を防いでいますか?"]
 ]},
 {pillar:"Networks",id:"NW-01",fn:"Segmentation (セグメンテーション)",
  lv:["境界防御 / フラットなNW","VLAN・DMZによる粗い分割","アプリごとのマイクロセグメンテーション","IDベースの細粒度セグメンテーション"],
  criteria:[
-  ["フラットネットワーク","境界FWのみで内部通信は無制限","全デバイスが相互到達可能"],
-  ["VLAN/DMZによるゾーン分割","基本的なACLルール","サーバーセグメントの分離"],
-  ["アプリごとのマイクロセグメンテーション","User-to-App単位のアクセス制御","横展開経路の制限"],
-  ["IDベースの細粒度セグメンテーション","A2A/A2D通信の完全制御","動的セグメンテーション"]
+  ["社内ネットワークはフラット構成で内部通信が無制限ですか?","境界FWのみで防御し内部の横展開対策は行っていない状態ですか?","社内の全デバイスが相互到達可能な状態ですか?"],
+  ["VLAN/DMZで粗いゾーン分割を行っていますか?","基本的なACLルールを適用していますか?","サーバーセグメントとクライアントセグメントを分離していますか?"],
+  ["アプリケーション単位のマイクロセグメンテーションを実装していますか?","User-to-App単位でアクセス制御を行っていますか?","ラテラルムーブメント(横展開)経路を明示的に制限していますか?"],
+  ["IDベースの細粒度セグメンテーションを実現していますか?","アプリ間(A2A)・アプリ-デバイス間(A2D)通信を完全に制御していますか?","コンテキストに応じて動的にセグメントを変更する仕組みがありますか?"]
 ]},
 {pillar:"Networks",id:"NW-02",fn:"Traffic Management (トラフィック管理)",
  lv:["静的ルーティング / VPN依存","一部ソフトウェア定義 / LB","SD-WAN / アプリ認識型の制御","インターネットブレイクアウト / 最適経路自動化"],
  criteria:[
-  ["静的ルーティング","VPN依存のリモートアクセス","帯域管理なし"],
-  ["一部SDN","ロードバランサーの導入","基本的なQoS設定"],
-  ["SD-WAN導入","アプリケーション認識型のトラフィック制御","ローカルブレイクアウトの開始"],
-  ["インターネットブレイクアウト全面展開","最適経路の自動選択","ZTブローカー経由のA2A全通信制御","VPN完全廃止"]
+  ["拠点間ルーティングは静的設定のみで運用されていますか?","リモートアクセスはVPN前提で運用されていますか?","アプリケーション単位の帯域管理は行っていない状態ですか?"],
+  ["一部でSDN(ソフトウェア定義ネットワーク)を導入していますか?","ロードバランサーを導入していますか?","基本的なQoS設定を適用していますか?"],
+  ["SD-WANを導入していますか?","アプリケーション認識型のトラフィック制御を行っていますか?","ローカルブレイクアウト(拠点直接インターネット接続)を開始していますか?"],
+  ["全拠点でインターネットブレイクアウトを展開していますか?","アプリ・ユーザー単位で最適経路を自動選択していますか?","アプリ間(A2A)通信もZTブローカー経由で全制御していますか?","従来のVPNを完全に廃止できていますか?"]
 ]},
 {pillar:"Networks",id:"NW-03",fn:"Encryption & Inspection (暗号化・検査)",
  lv:["暗号化なし / 検査なし","主要通信の暗号化 / 限定的検査","全通信の暗号化 / 復号と詳細検査","完全TLS1.3 / 全トラフィック常時検査 / BERT意図解析"],
  criteria:[
-  ["通信暗号化なし","トラフィック検査なし","SSL/TLS設定が古い・脆弱"],
-  ["主要通信のTLS暗号化","限定的なトラフィック検査","基本的なURLフィルタリング"],
-  ["全通信の暗号化（TLS1.2以上）","SSL復号による詳細検査","サンドボックス連携","DLP検査の統合"],
-  ["完全TLS1.3対応","全トラフィックの常時インライン検査","BERT意図解析","A2A通信のプロトコルレベル検査","PQC対応検査"]
+  ["通信の暗号化はほぼ行われていない状態ですか?","トラフィック検査は行っていない状態ですか?","SSL/TLS設定が旧式・脆弱なまま残っていますか?"],
+  ["主要通信のTLS暗号化を実施していますか?","限定的なトラフィック検査(プロキシのみ等)を行っていますか?","基本的なURLフィルタリングを行っていますか?"],
+  ["社内外通信を全てTLS1.2以上で暗号化していますか?","SSL復号によりインライン詳細検査を行っていますか?","サンドボックスと連携して未知ファイルを解析していますか?","DLP検査を統合運用していますか?"],
+  ["全通信をTLS1.3対応に完全移行していますか?","全トラフィックを常時インラインで検査していますか?","BERT等の意図解析でフィッシング/プロンプトインジェクションを検知していますか?","A2A通信もプロトコルレベルで検査していますか?","耐量子暗号(PQC)に対応した検査基盤を整備していますか?"]
 ]},
 {pillar:"App & Workload",id:"AP-01",fn:"Access Strategy (アクセス戦略)",
  lv:["IPベースの許可 / VPN経由","ローカル認証 / 基本的RBAC","一元化された認証 / 動的ポリシー","継続的な認可 / 最小特権アクセス(ZPA)"],
  criteria:[
-  ["IPベースのアクセス許可","VPN経由の全面接続","アプリケーション個別認証"],
-  ["ローカル認証の一部統合","基本的RBAC","最低限のアクセス制御ポリシー"],
-  ["一元化されたIdP認証","動的ポリシー（コンテキストベース）","アプリごとのアクセス制御","VPNの段階的ZTNA置換"],
-  ["継続的認可（セッション中のリスク再評価）","最小特権アクセス（ZPA等）","AIプラットフォームへのZTNA制御","JIT/JEA"]
+  ["アプリへのアクセス許可はIPアドレスベースで行っていますか?","アプリへの接続は基本的にVPN経由ですか?","各アプリで個別の認証を運用していますか?"],
+  ["一部アプリでローカル認証を統合していますか?","基本的なRBAC(ロールベースアクセス制御)を適用していますか?","最低限のアクセス制御ポリシーを定義していますか?"],
+  ["一元化されたIdPでアプリ認証を行っていますか?","ユーザー属性・コンテキストに基づく動的ポリシーを適用していますか?","アプリごとに細かいアクセス制御を実装していますか?","従来VPNからZTNAへの段階的置換を進めていますか?"],
+  ["セッション中もリスクを再評価して継続的に認可していますか?","ZPA等で最小特権アクセスを実現していますか?","AIプラットフォームへのアクセスもZTNAで制御していますか?","JIT(Just-In-Time)/JEA(Just-Enough-Access)を導入していますか?"]
 ]},
 {pillar:"App & Workload",id:"AP-02",fn:"Threat Protection",
  lv:["境界型FWのみ / シグネチャベース","WAF導入 / 定期的なスキャン","振る舞い検知 / サンドボックス連携","AI活用による未知の脅威防御 / BERT意図解析 / XAI出力"],
  criteria:[
-  ["境界型FWのみ","シグネチャベースの検知","既知脅威のみ対応"],
-  ["WAF導入","定期的な脆弱性スキャン","基本的なIPS/IDS","マルウェア対策"],
-  ["振る舞い検知エンジン","サンドボックス連携","リアルタイムのインライン脅威検査","API保護の基本実装"],
-  ["AI/ML活用の未知脅威防御","BERT意図解析","XAI出力（判断根拠の可視化）","EU AI Act準拠の透明性"]
+  ["脅威防御は境界型FWのみで行っていますか?","検知はシグネチャベースに依存していますか?","既知脅威にしか対応できていない状態ですか?"],
+  ["WAFを導入していますか?","定期的な脆弱性スキャンを実施していますか?","基本的なIPS/IDSを導入していますか?","マルウェア対策(EPP等)を導入していますか?"],
+  ["振る舞い検知エンジン(EDR/NDR)を運用していますか?","サンドボックスと連携した動的解析を行っていますか?","リアルタイムにインラインで脅威を検査していますか?","API保護の基本実装(認証/レート制限)を行っていますか?"],
+  ["AI/MLで未知の脅威を防御できていますか?","BERT等の意図解析でプロンプトインジェクションを検知できますか?","XAIで判断根拠を可視化していますか?","EU AI Actで求められる透明性要件を充足していますか?"]
 ]},
 {pillar:"App & Workload",id:"AP-03",fn:"Accessibility (公開・接続性)",
  lv:["インターネットへの直接公開","DMZ経由 / プロキシ利用","クラウドプロキシ経由 / 攻撃面縮小","インバウンド通信の完全遮断 / 内部アプリ隠蔽"],
  criteria:[
-  ["アプリのインターネット直接公開","攻撃面が外部から可視","ポートスキャンで検出可能"],
-  ["DMZ経由のアクセス制御","リバースプロキシの利用","基本的なDDoS対策"],
-  ["クラウドプロキシ経由（SSE）","攻撃面の大幅縮小","DNS/Whois情報の露出制御","外部公開アプリのZTNA化開始"],
-  ["インバウンド通信の完全遮断","内部アプリの完全隠蔽","AIエージェント接続のZTNA制御","ゼロアタックサーフェス実現"]
+  ["業務アプリをインターネットに直接公開していますか?","攻撃面が外部から可視な状態ですか?","ポートスキャンで公開アプリが容易に検出される状態ですか?"],
+  ["DMZ経由でアクセス制御を行っていますか?","リバースプロキシを利用していますか?","基本的なDDoS対策を実装していますか?"],
+  ["クラウドプロキシ(SSE/SASE)経由でアクセスさせていますか?","公開アプリの攻撃面を大幅に縮小していますか?","DNS/Whois情報の露出を制御していますか?","外部公開アプリのZTNA化を開始していますか?"],
+  ["全インバウンド通信を完全遮断していますか?","内部アプリは外部から完全に隠蔽されていますか?","AIエージェントからの接続もZTNAで制御していますか?","ゼロアタックサーフェスを実現していますか?"]
 ]},
 {pillar:"Data",id:"DA-01",fn:"Inventory & Classification (分類)",
  lv:["分類なし / 手動管理","基本的なタグ付け / 主要データ特定","自動分類 / DLPポリシーとの連携","ML動的分類 / AI BOM来歴記録"],
  criteria:[
-  ["データ分類なし","手動管理（ファイルサーバー放置）","機密データの所在不明"],
-  ["基本的なタグ付け","主要データの特定・棚卸し","データオーナーの明確化開始"],
-  ["自動分類（正規表現・キーワード）","DLPポリシーとの連携","学習データのラベル化開始","データフロー可視化"],
-  ["ML/AI動的分類","AI BOM来歴記録","Training Data Attribution","データリネージ完全管理"]
+  ["データ分類体系は存在しない状態ですか?","データはファイルサーバー等に放置され手動管理されていますか?","機密データの所在を把握できていない状態ですか?"],
+  ["基本的なタグ付け(機密/社外秘/公開等)を行っていますか?","主要データの特定・棚卸しを実施していますか?","データオーナーを明確化し始めていますか?"],
+  ["正規表現・キーワードによる自動分類を実装していますか?","分類結果をDLPポリシーと連携させていますか?","AI学習データのラベル化を開始していますか?","データフローを可視化していますか?"],
+  ["ML/AIによる動的分類を実現していますか?","AI BOMにデータ来歴を記録していますか?","Training Data Attribution(出力に対する学習データ寄与)を追跡していますか?","データリネージを完全管理していますか?"]
 ]},
 {pillar:"Data",id:"DA-02",fn:"Access Control (アクセス制御)",
  lv:["フォルダ単位の権限 / 静的","ロールベース / 一部制限あり","データ属性に基づく動的な制御","データ中心のセキュリティ / RAGアクセス制御"],
  criteria:[
-  ["フォルダ単位の静的権限","過剰権限の放置","アクセスログの取得なし"],
-  ["ロールベースのアクセス制御","一部データへの制限設定","基本的なアクセスログ取得"],
-  ["データ属性に基づく動的制御（ABAC）","DLPとの連携によるリアルタイム制御","アクセスパターンの監視"],
-  ["データ中心のセキュリティ","RAGアクセス制御","AI Data Protection","適応型アクセス制御"]
+  ["データアクセス権限はフォルダ単位の静的設定のみですか?","過剰権限(必要以上のアクセス権)が放置されていますか?","データアクセスログを取得していない状態ですか?"],
+  ["ロールベースのアクセス制御(RBAC)を運用していますか?","一部の重要データに追加の制限を設定していますか?","基本的なアクセスログを取得していますか?"],
+  ["データ属性ベース(ABAC)の動的アクセス制御を実装していますか?","DLPと連携してリアルタイムにアクセスを制御していますか?","アクセスパターンを監視して異常を検知していますか?"],
+  ["データそのものに権限を埋め込むデータ中心セキュリティを実現していますか?","RAG(Retrieval-Augmented Generation)向けのアクセス制御を実装していますか?","AI Data Protection(AI利用時のデータ保護)を運用していますか?","コンテキストに応じた適応型アクセス制御を行っていますか?"]
 ]},
 {pillar:"Data",id:"DA-03",fn:"Encryption (暗号化)",
  lv:["保存時のみ暗号化 / 鍵管理が脆弱","保存・転送時の暗号化","鍵管理システム導入 / 条件付き復号","常時暗号化 / BYOK / PQC準拠"],
  criteria:[
-  ["保存時の基本暗号化のみ","鍵管理が脆弱","転送時暗号化の不備"],
-  ["保存時＋転送時の暗号化","基本的な鍵管理","暗号化ポリシーの文書化"],
-  ["HSM/KMS等の鍵管理","条件付き復号","暗号化の自動適用","鍵ローテーションの自動化"],
-  ["常時暗号化（At-Rest/In-Transit/In-Use）","BYOK","ポイズニング対策","PQC移行完了"]
+  ["暗号化は保存時のみで基本的なもののみですか?","暗号鍵の管理体制が脆弱(平文保管/共有等)な状態ですか?","通信転送時の暗号化に不備がありますか?"],
+  ["保存時と転送時の両方を暗号化していますか?","基本的な鍵管理プロセスを運用していますか?","暗号化ポリシーを文書化していますか?"],
+  ["HSM/KMS等の鍵管理システムを導入していますか?","条件付き復号(コンテキスト次第で復号可否を制御)を実装していますか?","暗号化を自動適用する仕組みがありますか?","鍵ローテーションを自動化していますか?"],
+  ["保存・転送・利用時(In-Use)を含めた常時暗号化を実現していますか?","BYOK(Bring Your Own Key)で顧客が鍵を管理できますか?","学習データへのポイズニング対策を講じていますか?","耐量子暗号(PQC)への移行が完了していますか?"]
 ]},
 {pillar:"Cross-Cutting",id:"CC-01",fn:"Visibility & Analytics — AISPM/XAI対応",
  lv:["サイロ化されたログ / 手動分析","ログ集約(SIEM) / 基本レポート","統合ダッシュボード / 相関分析 / AISPM","高度な分析(AI/ML) / 予測的インサイト / XAIスコア"],
  criteria:[
-  ["ログがサイロ化","手動でのログ分析","統合的な可視化なし"],
-  ["SIEM導入・ログ集約","基本的なレポート・ダッシュボード","定型アラートの設定"],
-  ["統合ダッシュボード","相関分析","AISPM導入","改ざん防止ログの外部保全"],
-  ["AI/MLによる高度な分析","予測的インサイト","XAIスコアの定量評価","AISPM統合"]
+  ["ログが各システムでサイロ化されている状態ですか?","ログ分析は担当者の手作業で行っていますか?","統合的な可視化基盤は無い状態ですか?"],
+  ["SIEMを導入してログを集約していますか?","基本的なレポート・ダッシュボードを運用していますか?","定型アラートを設定していますか?"],
+  ["統合ダッシュボードで横断的に可視化していますか?","複数ログソースの相関分析を行っていますか?","AISPM(AI Security Posture Management)を導入していますか?","改ざん防止ログを外部に保全していますか?"],
+  ["AI/MLで高度な分析(異常検知/予兆検知)を行っていますか?","予測的インサイト(将来のリスク傾向)を経営層に提供していますか?","XAIスコアで判断根拠を定量評価していますか?","AISPMを既存SOCに統合運用していますか?"]
 ]},
 {pillar:"Cross-Cutting",id:"CC-02",fn:"Automation (自動化・オーケストレーション)",
  lv:["手動対応","一部プロセスの自動化","API連携 / SOARの活用","完全自動化 / 自己修復 / Human Verification Gate"],
  criteria:[
-  ["手動対応のみ","自動化スクリプトなし","インシデント対応がアドホック"],
-  ["一部プロセスの自動化","基本的なアラート自動通知","ランブックの文書化"],
-  ["API連携によるツール統合","SOAR導入・プレイブック自動実行","インシデント対応の自動化"],
-  ["完全自動化されたレスポンス","自己修復","Human Verification Gate","推論チェーン全トレース"]
+  ["インシデント対応は完全に手動で行っていますか?","運用自動化スクリプトは存在しない状態ですか?","インシデント対応はアドホック(都度判断)で進めていますか?"],
+  ["一部の運用プロセスを自動化していますか?","基本的なアラート自動通知を設定していますか?","主要インシデント向けのランブックを文書化していますか?"],
+  ["API連携でセキュリティツール間を統合していますか?","SOARを導入しプレイブックを自動実行していますか?","インシデント対応の主要ステップを自動化していますか?"],
+  ["インシデント検知から対応までを完全自動化していますか?","検知時に自己修復(隔離/再起動/構成是正)を実行していますか?","重要処理にHuman Verification Gate(人間承認)を組み込んでいますか?","AIエージェントの推論チェーンを全トレースしていますか?"]
 ]},
 {pillar:"Cross-Cutting",id:"CC-03",fn:"Governance — EU AI Act対応",
  lv:["文書ベース / 定期監査のみ","ポリシーの電子化 / コンプライアンス追跡","ポリシー適用の自動化 / 技術的強制","PaC / 継続的コンプライアンス / EU AI Act準拠"],
  criteria:[
-  ["文書ベースのポリシー管理","定期監査のみ","ガバナンスプロセスの未整備"],
-  ["ポリシーの電子化","コンプライアンス追跡システム","基本的な監査証跡","AI利用ポリシーの策定"],
-  ["ポリシー適用の自動化","技術的強制","継続的コンプライアンスモニタリング","AI利用のガバナンスフレームワーク"],
-  ["Policy-as-Code","継続的コンプライアンス","XAI-Compliance-by-Design","EU AI Act完全準拠"]
+  ["セキュリティポリシーは紙/Word文書ベースで管理していますか?","コンプライアンスチェックは年次等の定期監査のみですか?","ガバナンスプロセスが未整備な状態ですか?"],
+  ["ポリシーを電子化して一元管理していますか?","コンプライアンス追跡システムを導入していますか?","基本的な監査証跡を取得していますか?","AI利用に関するポリシーを策定済みですか?"],
+  ["ポリシー適用を自動化していますか?","ポリシー違反を技術的に強制(ブロック)していますか?","継続的コンプライアンスモニタリングを行っていますか?","AI利用のガバナンスフレームワークを整備していますか?"],
+  ["Policy-as-Code(PaC)でポリシーをコード管理していますか?","継続的コンプライアンス(常時遵守状態の維持)を実現していますか?","XAI-Compliance-by-Design(設計段階で説明可能性を組込)を採用していますか?","EU AI Actの要件を完全準拠していますか?"]
 ]},
 ];
 
@@ -2333,7 +2422,7 @@ function PillarBar({ pillar, cur, tgt, extra }){
 }
 
 /* ================== MATRIX CELL + DUAL SLIDER ================== */
-function MatrixRow({ ctrl, cur, tgt, onSetCur, onSetTgt, editing, onToggle }){
+function MatrixRow({ ctrl, cur, tgt, onSetCur, onSetTgt, editing, expanded, onToggle }){
   const p = pillarOf(ctrl.pillar);
   const gap = tgt - cur;
   return (
@@ -2347,7 +2436,7 @@ function MatrixRow({ ctrl, cur, tgt, onSetCur, onSetTgt, editing, onToggle }){
         <div key={lv}
           className={"mcell" + (cur === lv ? " cur" : "") + (tgt === lv ? " tgt" : "")}
           style={{"--pillar": `var(${p.var})`}}
-          onClick={() => { if (editing === "cur") onSetCur(lv); else if (editing === "tgt") onSetTgt(lv); else onToggle(); }}>
+          onClick={() => { if (editing === "cur") onSetCur(lv); else if (editing === "tgt") onSetTgt(lv); }}>
           <div className="mcell-lv">Lv{lv} · {LEVEL_LABELS[lv-1]}</div>
           <div className="mcell-desc">{ctrl.lv[lv-1]}</div>
         </div>
@@ -2358,7 +2447,43 @@ function MatrixRow({ ctrl, cur, tgt, onSetCur, onSetTgt, editing, onToggle }){
           {gap > 0 ? `+${gap} gap` : "= on target"}
         </span>
         <span>TO-BE Lv{tgt}</span>
+        <button type="button"
+          className={"hearing-toggle" + (expanded ? " on" : "")}
+          onClick={onToggle}
+          aria-expanded={expanded}
+          title="顧客ヒアリング用の質問を表示">
+          {expanded ? "× 質問を閉じる" : "Q ヒアリング質問"}
+        </button>
       </div>
+      {expanded && (
+        <div className="hearing-panel" style={{"--pillar": `var(${p.var})`}}>
+          <div className="hearing-panel-head">{ctrl.id} · {ctrl.fn} — 顧客ヒアリング質問</div>
+          <div className="hearing-panel-tip">
+            Lv1から順に「はい」が続く最高のLvが当該コントロールのAS-ISです。お客様に質問しながら下記Yes/No質問へ回答していただき、左上のセルからAS-IS/TO-BEを設定してください。
+          </div>
+          <div className="hearing-levels">
+            {[1,2,3,4].map(lv => {
+              const isCur = cur === lv;
+              const isTgt = tgt === lv;
+              const questions = (ctrl.criteria && ctrl.criteria[lv-1]) || [];
+              return (
+                <div key={lv}
+                  className={"hearing-lv" + (isCur ? " cur" : "") + (isTgt ? " tgt" : "")}>
+                  <div className="hearing-lv-head">
+                    <span className="hearing-lv-code">Lv{lv}</span>
+                    {isCur && <span className="hearing-lv-tag cur">AS-IS</span>}
+                    {isTgt && <span className="hearing-lv-tag tgt">TO-BE</span>}
+                  </div>
+                  <div className="hearing-lv-summary">{ctrl.lv[lv-1]}</div>
+                  <ul className="hearing-q-list">
+                    {questions.map((q, i) => <li key={i}>{q}</li>)}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </React.Fragment>
   );
 }
@@ -2780,6 +2905,7 @@ function DashboardView({ customerName, assessmentDate, ztCur, ztTgt, pillarScore
 function AssessmentView({ ztCur, ztTgt, setCur, setTgt, onReset }){
   const [activeId, setActiveId] = useState(null);
   const [mode, setMode] = useState("cur");
+  const [allHearing, setAllHearing] = useState(false);
 
   const groups = {};
   ZTMM_DATA.forEach(c => {
@@ -2821,6 +2947,10 @@ function AssessmentView({ ztCur, ztTgt, setCur, setTgt, onReset }){
               編集モード: <strong style={{color:"var(--ink)"}}>{mode==="cur"?"AS-IS（現在地）":"TO-BE（目標）"}</strong> · セルをクリックして Lv を設定
             </span>
             <div className="spacer"></div>
+            <button className="btn sm ghost" onClick={() => { setAllHearing(v => !v); setActiveId(null); }}
+              title="全コントロールのヒアリング質問を一括展開/折りたたみ">
+              {allHearing ? "Q 質問を全て閉じる" : "Q 全コントロールの質問を展開"}
+            </button>
             <button className="btn sm ghost" onClick={onReset}>リセット</button>
           </div>
 
@@ -2843,6 +2973,7 @@ function AssessmentView({ ztCur, ztTgt, setCur, setTgt, onReset }){
                   {ctrls.map(c => (
                     <MatrixRow key={c.id} ctrl={c} cur={ztCur[c.id]} tgt={ztTgt[c.id]}
                       editing={mode}
+                      expanded={allHearing || activeId === c.id}
                       onSetCur={(lv) => setCur(c.id, lv)}
                       onSetTgt={(lv) => setTgt(c.id, lv)}
                       onToggle={() => setActiveId(activeId === c.id ? null : c.id)}/>
@@ -4174,6 +4305,7 @@ function App(){
     const payload = {
       format: "maaz-v4-csfa",
       tool_version: "1.0.2",
+      schema_version: "csfa-1.1",
       generated_at: new Date().toISOString(),
       customer: {
         company_name: customerName || "",
@@ -4185,13 +4317,19 @@ function App(){
       target_score_0_100: Math.round(ztmmOverall.tgt),
       controls: ZTMM_DATA.map(c => ({
         id: c.id, pillar: c.pillar, fn: c.fn,
-        asIs: ztCur[c.id], toBe: ztTgt[c.id]
+        asIs: ztCur[c.id], toBe: ztTgt[c.id],
+        level_summaries: c.lv,
+        hearing_questions: (c.criteria || []).map((qs, i) => ({
+          level: i + 1,
+          summary: c.lv[i],
+          questions: qs
+        }))
       })),
       evidenceHint: "deriveEvidence()"
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     downloadBlob(blob, `maaz_csfa_${assessmentDate}.json`);
-    showToast("CSFA 連携 JSON を出力しました");
+    showToast("CSFA 連携 JSON を出力しました（ヒアリング質問付き）");
   }, [customerName, assessmentDate, ztmmOverall, ztCur, ztTgt]);
 
   const saveSnapshot = useCallback(() => {
